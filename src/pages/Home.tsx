@@ -77,12 +77,10 @@ const products: Product[] = [
   },
 ];
 
-const categories = ["Toutes les catégories", "Weed", "Hash", "Edibles"];
-const farms = ["Toutes les farms", "Holland", "Espagne", "California", "France"];
+const categories = ["Toutes les catégories", "Weed", "Hash", "Mash"];
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
-  const [selectedFarm, setSelectedFarm] = useState("Toutes les farms");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
@@ -112,6 +110,22 @@ const Home = () => {
           Salut <span className="gradient-text">{telegramUsername}</span> 👋
         </h1>
         <p className="text-xs font-medium text-muted-foreground">Liste des produits</p>
+      </div>
+
+      {/* Filter by category */}
+      <div className="px-4 mb-4 relative z-10">
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="input-shop">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Products grid - Prix masqués */}
