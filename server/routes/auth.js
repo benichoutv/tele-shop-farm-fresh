@@ -1,0 +1,58 @@
+import express from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { getDb } from '../db/connection.js';
+
+const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+// Login
+router.post('/login', async (req, res) => {
+  try {
+    const db = await getDb();
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username et password requis' });
+    }
+    
+    const user = await db.get('SELECT * FROM admin_users WHERE username = ?', [username]);
+    
+    if (!user) {
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    }
+    
+    const validPassword = await bcrypt.compare(password, user.password_hash);
+    
+    if (!validPassword) {
+      return res.status(401).json({ error: 'Identifiants incorrects' });
+    }
+    
+    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, {
+      expiresIn: '24h'
+    });
+    
+    res.json({ token, username: user.username });
+  } catch (error) {
+    console.error('Error during login:', error);
+    res.status(500).json({ error: 'Erreur lors de la connexion' });
+  }
+});
+
+// Verify token
+router.get('/verify', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      return res.status(401).json({ error: 'Token manquant' });
+    }
+    
+    const decoded = jwt.verify(token, JWT_SECRET);
+    res.json({ valid: true, username: decoded.username });
+  } catch (error) {
+    res.status(401).json({ error: 'Token invalide' });
+  }
+});
+
+export default router;
