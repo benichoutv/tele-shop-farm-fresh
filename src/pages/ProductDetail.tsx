@@ -64,9 +64,9 @@ const ProductDetail = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header */}
-      <div className="sticky top-0 bg-background/95 backdrop-blur-sm z-10 border-b border-border">
+      <div className="sticky top-0 bg-background/95 backdrop-blur-lg z-10 border-b border-border/50 shadow-lg">
         <div className="flex items-center justify-between p-4">
           <button
             onClick={() => navigate("/")}
@@ -89,7 +89,7 @@ const ProductDetail = () => {
       </div>
 
       {/* Product info */}
-      <div className="px-4 py-6 space-y-6">
+      <div className="px-4 py-6 space-y-6 relative z-10">
         {/* Name and tags */}
         <div>
           <h1 className="text-2xl font-bold text-foreground mb-3">{product.name}</h1>

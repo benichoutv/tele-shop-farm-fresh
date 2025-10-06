@@ -44,19 +44,19 @@ const Cart = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
+    <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header with logo */}
-      <div className="pt-6 pb-4 flex justify-center">
-        <img src={logo} alt="RSLIV Logo" className="w-24 h-24 object-contain" />
+      <div className="pt-6 pb-4 flex justify-center relative z-10">
+        <img src={logo} alt="RSLIV Logo" className="w-24 h-24 object-contain drop-shadow-2xl" />
       </div>
 
       {/* Title */}
-      <div className="text-center mb-6 px-4">
-        <h1 className="text-2xl font-bold text-foreground">Mon Panier</h1>
+      <div className="text-center mb-8 px-4 relative z-10">
+        <h1 className="text-3xl font-bold text-foreground">Mon Panier</h1>
       </div>
 
       {/* Cart items */}
-      <div className="px-4 mb-6">
+      <div className="px-4 mb-6 relative z-10">
         {cartItems.length === 0 ? (
           <div className="card-shop p-8 text-center">
             <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
@@ -92,7 +92,7 @@ const Cart = () => {
 
       {/* Order form */}
       {cartItems.length > 0 && (
-        <form onSubmit={handleOrder} className="px-4 space-y-4">
+        <form onSubmit={handleOrder} className="px-4 space-y-5 relative z-10">
           <div className="card-shop p-5">
             <h2 className="text-xl font-bold text-foreground mb-4">
               Informations de livraison
@@ -156,30 +156,30 @@ const Cart = () => {
       )}
 
       {/* Bottom Navigation */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card border-t border-border py-2 px-4">
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t border-border/50 py-3 px-4 z-50 shadow-2xl">
         <div className="flex justify-around items-center max-w-md mx-auto">
           <Link
             to="/"
-            className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-colors gap-1"
+            className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1"
           >
             <Home className="w-6 h-6" />
-            <span className="text-xs">Accueil</span>
+            <span className="text-xs font-medium">Accueil</span>
           </Link>
           <Link
             to="/info"
-            className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-colors gap-1"
+            className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1"
           >
             <Info className="w-6 h-6" />
-            <span className="text-xs">Info</span>
+            <span className="text-xs font-medium">Info</span>
           </Link>
           <Link
             to="/cart"
-            className="flex flex-col items-center text-[hsl(var(--accent))] gap-1 relative"
+            className="flex flex-col items-center nav-item-active gap-1 relative transition-all duration-300"
           >
             <ShoppingCart className="w-6 h-6" />
-            <span className="text-xs font-medium">Panier</span>
+            <span className="text-xs font-semibold">Panier</span>
             {cartItems.length > 0 && (
-              <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
                 {cartItems.length}
               </span>
             )}

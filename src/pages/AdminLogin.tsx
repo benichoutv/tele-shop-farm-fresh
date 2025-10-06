@@ -25,12 +25,12 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 logo-watermark">
+      <div className="w-full max-w-md relative z-10">
         <div className="card-shop p-8">
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <img src={logo} alt="RSLIV Logo" className="w-24 h-24 object-contain" />
+            <img src={logo} alt="RSLIV Logo" className="w-24 h-24 object-contain drop-shadow-2xl" />
           </div>
 
           {/* Title */}

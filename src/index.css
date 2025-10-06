@@ -51,32 +51,132 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
   }
 
   html, body, #root {
     @apply h-full;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Poppins', sans-serif;
+  }
 }
 
 @layer components {
+  .logo-watermark {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .logo-watermark::before {
+    content: '';
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: 600px;
+    height: 600px;
+    background-image: url('/src/assets/logo.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.06;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
   .tag-yellow {
-    @apply bg-[hsl(var(--tag-yellow))] text-[hsl(var(--primary))] text-xs font-medium px-2 py-1 rounded-full;
+    @apply bg-[hsl(var(--tag-yellow))] text-[hsl(var(--primary))] text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm;
+    animation: fadeIn 0.3s ease-out;
   }
 
   .tag-green {
-    @apply bg-[hsl(var(--tag-green))] text-[hsl(var(--primary))] text-xs font-medium px-2 py-1 rounded-full;
+    @apply bg-[hsl(var(--tag-green))] text-[hsl(var(--primary))] text-xs font-semibold px-3 py-1.5 rounded-full shadow-sm;
+    animation: fadeIn 0.3s ease-out;
   }
 
   .btn-primary {
-    @apply bg-[hsl(var(--accent))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]/90 font-medium rounded-lg transition-all;
+    @apply bg-[hsl(var(--accent))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]/90 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98];
   }
 
   .card-shop {
-    @apply bg-card rounded-xl shadow-lg border border-border overflow-hidden;
+    @apply bg-card/80 backdrop-blur-sm rounded-2xl shadow-xl border border-border/50 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-[hsl(var(--accent))]/30;
+    animation: slideUp 0.4s ease-out;
   }
 
   .input-shop {
-    @apply bg-input border border-border rounded-lg px-4 py-3 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-accent focus:border-transparent outline-none transition-all;
+    @apply bg-input/80 backdrop-blur-sm border-2 border-border rounded-xl px-4 py-3.5 text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-accent focus:border-accent outline-none transition-all duration-300;
+  }
+
+  .nav-item-active {
+    @apply text-[hsl(var(--accent))] relative;
+  }
+
+  .nav-item-active::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: hsl(var(--accent));
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: translateX(-50%) scale(1.5);
+    }
+  }
+
+  .gradient-text {
+    background: linear-gradient(135deg, hsl(var(--accent)), hsl(var(--tag-yellow)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .floating-badge {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
   }
 }
