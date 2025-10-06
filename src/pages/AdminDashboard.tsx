@@ -25,6 +25,7 @@ interface Product {
 }
 
 interface AppSettings {
+  welcomeMessage: string;
   telegramLink: string;
   whatsappLink: string;
   signalLink: string;
@@ -55,6 +56,7 @@ export default function AdminDashboard() {
   ]);
 
   const [settings, setSettings] = useState<AppSettings>({
+    welcomeMessage: localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋",
     telegramLink: "https://t.me/votre_compte",
     whatsappLink: "https://wa.me/33612345678",
     signalLink: "https://signal.me/#p/+33612345678"
@@ -156,6 +158,7 @@ export default function AdminDashboard() {
   };
 
   const handleSaveSettings = () => {
+    localStorage.setItem("welcomeMessage", settings.welcomeMessage);
     toast({ title: "Paramètres sauvegardés avec succès" });
   };
 
@@ -280,6 +283,19 @@ export default function AdminDashboard() {
             <h2 className="text-2xl font-semibold mb-6">Paramètres de l'application</h2>
             
             <div className="card-shop p-6 space-y-6">
+              <div>
+                <Label className="text-white mb-2 block">Message d&apos;accueil</Label>
+                <Input
+                  value={settings.welcomeMessage}
+                  onChange={(e) => setSettings({ ...settings, welcomeMessage: e.target.value })}
+                  placeholder="Bienvenue sur l'app RSlive 👋"
+                  className="input-shop"
+                />
+                <p className="text-sm text-white/60 mt-1">
+                  Ce message s&apos;affichera en défilement sur la page d&apos;accueil
+                </p>
+              </div>
+
               <div>
                 <Label className="text-white mb-2 block">Lien Telegram</Label>
                 <Input

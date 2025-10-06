@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home as HomeIcon, Info, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -83,9 +83,16 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [welcomeMessage, setWelcomeMessage] = useState("");
   
   // Mock Telegram username
   const telegramUsername = "Benichou";
+
+  // Load welcome message from localStorage
+  useEffect(() => {
+    const message = localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋";
+    setWelcomeMessage(message);
+  }, []);
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -108,7 +115,7 @@ const Home = () => {
       <div className="text-center mb-4 px-4 relative z-10 mt-3 overflow-hidden">
         <div className="scrolling-text">
           <span className="text-lg font-bold text-foreground animate-fade-in">
-            Bienvenue sur l&apos;app RSlive 👋 {telegramUsername}
+            {welcomeMessage} {telegramUsername}
           </span>
         </div>
         <p className="text-xs font-medium text-muted-foreground mt-1">Liste des produits</p>
