@@ -155,7 +155,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
             {/* Add to Cart Button */}
             <Button
               onClick={handleAddToCart}
-              className="btn-primary w-full py-6 text-lg"
+              className="w-full bg-accent text-black hover:bg-accent/90 font-bold rounded-xl py-6 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]"
             >
               Ajouter au panier
             </Button>

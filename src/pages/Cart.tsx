@@ -148,7 +148,7 @@ const Cart = () => {
                 {total.toFixed(2)}€
               </span>
             </div>
-            <Button type="submit" className="w-full btn-primary py-6 text-lg">
+            <Button type="submit" className="w-full bg-accent text-black hover:bg-accent/90 font-bold rounded-xl py-6 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
               Commander
             </Button>
           </div>
