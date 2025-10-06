@@ -114,35 +114,6 @@ const Home = () => {
         <p className="text-xs font-medium text-muted-foreground">Liste des produits</p>
       </div>
 
-      {/* Filters */}
-      <div className="px-4 mb-4 space-y-2 relative z-10">
-        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="input-shop">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {categories.map((cat) => (
-              <SelectItem key={cat} value={cat}>
-                {cat}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <Select value={selectedFarm} onValueChange={setSelectedFarm}>
-          <SelectTrigger className="input-shop">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {farms.map((farm) => (
-              <SelectItem key={farm} value={farm}>
-                {farm}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-
       {/* Products grid - Prix masqués */}
       <div className="px-4 grid grid-cols-2 gap-4 relative z-10">
         {products.map((product, index) => (
