@@ -29,6 +29,12 @@ interface AppSettings {
   telegramLink: string;
   whatsappLink: string;
   signalLink: string;
+  orderHours: string;
+  meetupStatus: string;
+  deliveryZone: string;
+  deliveryHours: string;
+  telegramSocial: string;
+  snapchatSocial: string;
 }
 
 export default function AdminDashboard() {
@@ -57,9 +63,15 @@ export default function AdminDashboard() {
 
   const [settings, setSettings] = useState<AppSettings>({
     welcomeMessage: localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋",
-    telegramLink: "https://t.me/votre_compte",
-    whatsappLink: "https://wa.me/33612345678",
-    signalLink: "https://signal.me/#p/+33612345678"
+    telegramLink: localStorage.getItem("telegramLink") || "https://t.me/votre_compte",
+    whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
+    signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
+    orderHours: localStorage.getItem("orderHours") || "11h - 00h",
+    meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
+    deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
+    deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
+    telegramSocial: localStorage.getItem("telegramSocial") || "@RSliv",
+    snapchatSocial: localStorage.getItem("snapchatSocial") || "rsliv"
   });
 
   const [formData, setFormData] = useState({
@@ -171,6 +183,15 @@ export default function AdminDashboard() {
 
   const handleSaveSettings = () => {
     localStorage.setItem("welcomeMessage", settings.welcomeMessage);
+    localStorage.setItem("telegramLink", settings.telegramLink);
+    localStorage.setItem("whatsappLink", settings.whatsappLink);
+    localStorage.setItem("signalLink", settings.signalLink);
+    localStorage.setItem("orderHours", settings.orderHours);
+    localStorage.setItem("meetupStatus", settings.meetupStatus);
+    localStorage.setItem("deliveryZone", settings.deliveryZone);
+    localStorage.setItem("deliveryHours", settings.deliveryHours);
+    localStorage.setItem("telegramSocial", settings.telegramSocial);
+    localStorage.setItem("snapchatSocial", settings.snapchatSocial);
     toast({ title: "Paramètres sauvegardés avec succès" });
   };
 
@@ -291,12 +312,14 @@ export default function AdminDashboard() {
 
         {/* Settings Tab */}
         {activeTab === "settings" && (
-          <div className="max-w-2xl">
+          <div className="max-w-3xl space-y-6">
             <h2 className="text-2xl font-semibold mb-6">Paramètres de l'application</h2>
             
-            <div className="card-shop p-6 space-y-6">
+            {/* Message d'accueil */}
+            <div className="card-shop p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-[#96e635]">Message d'accueil</h3>
               <div>
-                <Label className="text-white mb-2 block">Message d&apos;accueil</Label>
+                <Label className="text-white mb-2 block">Message défilant</Label>
                 <Input
                   value={settings.welcomeMessage}
                   onChange={(e) => setSettings({ ...settings, welcomeMessage: e.target.value })}
@@ -307,7 +330,63 @@ export default function AdminDashboard() {
                   Ce message s&apos;affichera en défilement sur la page d&apos;accueil
                 </p>
               </div>
+            </div>
 
+            {/* Horaires et Disponibilité */}
+            <div className="card-shop p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-[#96e635]">Horaires et Disponibilité</h3>
+              
+              <div>
+                <Label className="text-white mb-2 block">Horaires de prise de commande</Label>
+                <Input
+                  value={settings.orderHours}
+                  onChange={(e) => setSettings({ ...settings, orderHours: e.target.value })}
+                  placeholder="11h - 00h"
+                  className="input-shop"
+                />
+              </div>
+
+              <div>
+                <Label className="text-white mb-2 block">Statut Meetup</Label>
+                <Input
+                  value={settings.meetupStatus}
+                  onChange={(e) => setSettings({ ...settings, meetupStatus: e.target.value })}
+                  placeholder="Disponible"
+                  className="input-shop"
+                />
+                <p className="text-sm text-white/60 mt-1">
+                  Ex: Disponible, Indisponible, Sur rendez-vous, etc.
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-white mb-2 block">Zone de livraison</Label>
+                <Textarea
+                  value={settings.deliveryZone}
+                  onChange={(e) => setSettings({ ...settings, deliveryZone: e.target.value })}
+                  placeholder="Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault"
+                  className="input-shop min-h-[80px]"
+                />
+                <p className="text-sm text-white/60 mt-1">
+                  Listez les départements ou zones couverts
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-white mb-2 block">Horaires de livraison</Label>
+                <Input
+                  value={settings.deliveryHours}
+                  onChange={(e) => setSettings({ ...settings, deliveryHours: e.target.value })}
+                  placeholder="11h - 00h"
+                  className="input-shop"
+                />
+              </div>
+            </div>
+
+            {/* Liens de contact */}
+            <div className="card-shop p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-[#96e635]">Liens de contact</h3>
+              
               <div>
                 <Label className="text-white mb-2 block">Lien Telegram</Label>
                 <Input
@@ -316,9 +395,6 @@ export default function AdminDashboard() {
                   placeholder="https://t.me/votre_compte"
                   className="input-shop"
                 />
-                <p className="text-sm text-white/60 mt-1">
-                  Lien pour contacter via Telegram
-                </p>
               </div>
 
               <div>
@@ -330,7 +406,7 @@ export default function AdminDashboard() {
                   className="input-shop"
                 />
                 <p className="text-sm text-white/60 mt-1">
-                  Lien WhatsApp (format: https://wa.me/numéro)
+                  Format: https://wa.me/numéro
                 </p>
               </div>
 
@@ -343,14 +419,45 @@ export default function AdminDashboard() {
                   className="input-shop"
                 />
                 <p className="text-sm text-white/60 mt-1">
-                  Lien Signal (format: https://signal.me/#p/numéro)
+                  Format: https://signal.me/#p/numéro
+                </p>
+              </div>
+            </div>
+
+            {/* Réseaux sociaux */}
+            <div className="card-shop p-6 space-y-4">
+              <h3 className="text-lg font-semibold text-[#96e635]">Réseaux sociaux</h3>
+              
+              <div>
+                <Label className="text-white mb-2 block">Telegram (identifiant)</Label>
+                <Input
+                  value={settings.telegramSocial}
+                  onChange={(e) => setSettings({ ...settings, telegramSocial: e.target.value })}
+                  placeholder="@RSliv"
+                  className="input-shop"
+                />
+                <p className="text-sm text-white/60 mt-1">
+                  L'identifiant Telegram avec @ (ex: @RSliv)
                 </p>
               </div>
 
-              <Button onClick={handleSaveSettings} className="btn-primary w-full">
-                Sauvegarder les paramètres
-              </Button>
+              <div>
+                <Label className="text-white mb-2 block">Snapchat (nom d'utilisateur)</Label>
+                <Input
+                  value={settings.snapchatSocial}
+                  onChange={(e) => setSettings({ ...settings, snapchatSocial: e.target.value })}
+                  placeholder="rsliv"
+                  className="input-shop"
+                />
+                <p className="text-sm text-white/60 mt-1">
+                  Le nom d'utilisateur Snapchat sans @
+                </p>
+              </div>
             </div>
+
+            <Button onClick={handleSaveSettings} className="btn-primary w-full">
+              Sauvegarder tous les paramètres
+            </Button>
           </div>
         )}
       </div>

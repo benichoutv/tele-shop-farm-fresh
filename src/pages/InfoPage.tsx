@@ -2,14 +2,22 @@ import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck, Send
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
-// Mock settings - à remplacer par les vraies données du backend
-const mockSettings = {
-  telegramLink: "https://t.me/RSliv",
-  whatsappLink: "https://wa.me/33612345678",
-  signalLink: "https://signal.me/#p/+33612345678"
-};
+// Récupération des paramètres depuis localStorage
+const getSettings = () => ({
+  telegramLink: localStorage.getItem("telegramLink") || "https://t.me/RSliv",
+  whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
+  signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
+  orderHours: localStorage.getItem("orderHours") || "11h - 00h",
+  meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
+  deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
+  deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
+  telegramSocial: localStorage.getItem("telegramSocial") || "@RSliv",
+  snapchatSocial: localStorage.getItem("snapchatSocial") || "rsliv"
+});
 
 const InfoPage = () => {
+  const settings = getSettings();
+  
   return (
     <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header with logo */}
@@ -40,7 +48,7 @@ const InfoPage = () => {
                 <MessageCircle className="w-4 h-4 text-muted-foreground" />
                 <span className="text-foreground">Prise de commande</span>
               </div>
-              <span className="text-[hsl(var(--accent))] font-semibold">11h - 00h</span>
+              <span className="text-[hsl(var(--accent))] font-semibold">{settings.orderHours}</span>
             </div>
 
             <div className="flex justify-between items-center border-b border-border pb-3">
@@ -48,7 +56,7 @@ const InfoPage = () => {
                 <MessageCircle className="w-4 h-4 text-muted-foreground" />
                 <span className="text-foreground">Meetup</span>
               </div>
-              <span className="text-[hsl(var(--success))] font-semibold">Disponible</span>
+              <span className="text-[hsl(var(--success))] font-semibold">{settings.meetupStatus}</span>
             </div>
 
             <div className="pt-2">
@@ -57,9 +65,9 @@ const InfoPage = () => {
                 <span className="text-foreground font-medium">Livraison</span>
               </div>
               <p className="text-muted-foreground text-xs ml-6 mb-1">
-                Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault
+                {settings.deliveryZone}
               </p>
-              <p className="text-[hsl(var(--accent))] font-semibold ml-6">11h - 00h</p>
+              <p className="text-[hsl(var(--accent))] font-semibold ml-6">{settings.deliveryHours}</p>
             </div>
           </div>
         </div>
@@ -73,7 +81,7 @@ const InfoPage = () => {
 
           <div className="space-y-3">
             <a
-              href={mockSettings.telegramLink}
+              href={settings.telegramLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#0088cc]/20 to-[#0088cc]/10 border border-[#0088cc]/30 hover:border-[#0088cc] transition-all hover:scale-[1.02]"
@@ -88,7 +96,7 @@ const InfoPage = () => {
             </a>
 
             <a
-              href={mockSettings.whatsappLink}
+              href={settings.whatsappLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#25D366]/20 to-[#25D366]/10 border border-[#25D366]/30 hover:border-[#25D366] transition-all hover:scale-[1.02]"
@@ -103,7 +111,7 @@ const InfoPage = () => {
             </a>
 
             <a
-              href={mockSettings.signalLink}
+              href={settings.signalLink}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#3a76f0]/20 to-[#3a76f0]/10 border border-[#3a76f0]/30 hover:border-[#3a76f0] transition-all hover:scale-[1.02]"
@@ -125,7 +133,7 @@ const InfoPage = () => {
 
           <div className="space-y-3">
             <a
-              href="https://t.me/RSliv"
+              href={`https://t.me/${settings.telegramSocial.replace('@', '')}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
@@ -135,12 +143,12 @@ const InfoPage = () => {
               </div>
               <div>
                 <p className="font-semibold text-[hsl(var(--primary))]">Telegram</p>
-                <p className="text-sm text-[hsl(var(--primary))]/80">@RSliv</p>
+                <p className="text-sm text-[hsl(var(--primary))]/80">{settings.telegramSocial}</p>
               </div>
             </a>
 
             <a
-              href="https://snapchat.com/add/rsliv"
+              href={`https://snapchat.com/add/${settings.snapchatSocial}`}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--tag-yellow))] hover:bg-[hsl(var(--tag-yellow))]/90 transition-colors"
@@ -150,7 +158,7 @@ const InfoPage = () => {
               </div>
               <div>
                 <p className="font-semibold text-[hsl(var(--primary))]">Snapchat</p>
-                <p className="text-sm text-[hsl(var(--primary))]/80">rsliv</p>
+                <p className="text-sm text-[hsl(var(--primary))]/80">{settings.snapchatSocial}</p>
               </div>
             </a>
           </div>
