@@ -100,7 +100,7 @@ const Home = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24 logo-watermark">
+    <div className="min-h-screen bg-gradient-to-b from-background via-background to-card/30 pb-24 logo-watermark">
       {/* Header with logo */}
       <div className="pt-3 pb-2 flex justify-center relative z-10 bg-card/50 backdrop-blur-sm border-b border-border/30">
         <img src={logo} alt="RSLIV Logo" className="w-36 h-36 object-contain drop-shadow-2xl" />
