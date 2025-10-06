@@ -53,7 +53,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#16291b] text-white border-[#96e635]/20 max-w-3xl p-0 overflow-hidden">
+      <DialogContent className="bg-[#16291b] text-white border-[#96e635]/20 max-w-3xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 z-50 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center hover:bg-black/70 transition-colors"
@@ -61,9 +61,9 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
           <X className="w-5 h-5" />
         </button>
 
-        <div className="grid md:grid-cols-2 gap-0">
+        <div className="grid md:grid-cols-2 gap-0 overflow-y-auto">
           {/* Media Section */}
-          <div className="relative bg-black/30 aspect-square md:aspect-auto">
+          <div className="relative bg-black/30 aspect-square md:aspect-auto flex-shrink-0">
             {product.mediaType === "image" ? (
               <img
                 src={product.mediaUrl}
