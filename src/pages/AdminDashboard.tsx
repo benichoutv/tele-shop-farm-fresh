@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Settings, LogOut, Video, Image } from "lucide-react";
+import { Plus, Edit, Trash2, Settings, LogOut, Video, Image, ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.png";
 
 interface ProductPrice {
   weight: string;
@@ -234,50 +236,97 @@ export default function AdminDashboard() {
     toast({ title: "Paramètres sauvegardés avec succès" });
   };
 
+  const handleExitAdmin = () => {
+    toast({ title: "Retour à l'application" });
+    navigate("/info");
+  };
+
   return (
-    <div className="min-h-screen bg-[#16291b] text-white relative">
-      <div className="logo-watermark" />
-      
-      <div className="relative z-10 max-w-7xl mx-auto px-4 py-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <img src="/src/assets/logo.png" alt="Logo" className="w-16 h-16 rounded-full" />
-            <h1 className="text-3xl font-bold">Administration</h1>
+    <div className="min-h-screen bg-background relative logo-watermark">
+      <div className="relative z-10 max-w-7xl mx-auto px-4 py-4 md:py-6">
+        {/* Header - Mobile Optimized */}
+        <div className="glass-effect rounded-2xl p-4 mb-6">
+          {/* Mobile Header */}
+          <div className="flex items-center justify-between md:hidden">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="Logo" className="w-12 h-12 object-contain drop-shadow-lg" />
+              <h1 className="text-xl font-bold text-foreground">Admin</h1>
+            </div>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="border-border/50">
+                  <Menu className="w-5 h-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="bg-card border-border/50">
+                <div className="flex flex-col gap-4 mt-8">
+                  <Button 
+                    onClick={handleExitAdmin} 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 border-border/50"
+                  >
+                    <ArrowLeft className="w-4 h-4" />
+                    Retour à l'app
+                  </Button>
+                  <Button 
+                    onClick={handleLogout} 
+                    variant="destructive" 
+                    className="w-full justify-start gap-2"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Déconnexion
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
-          <Button onClick={handleLogout} variant="outline" className="gap-2">
-            <LogOut className="w-4 h-4" />
-            Déconnexion
-          </Button>
+
+          {/* Desktop Header */}
+          <div className="hidden md:flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <img src={logo} alt="Logo" className="w-16 h-16 object-contain drop-shadow-lg" />
+              <h1 className="text-3xl font-bold text-foreground">Administration</h1>
+            </div>
+            <div className="flex gap-3">
+              <Button onClick={handleExitAdmin} variant="outline" className="gap-2">
+                <ArrowLeft className="w-4 h-4" />
+                Retour à l'app
+              </Button>
+              <Button onClick={handleLogout} variant="destructive" className="gap-2">
+                <LogOut className="w-4 h-4" />
+                Déconnexion
+              </Button>
+            </div>
+          </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-4 mb-6 border-b border-[#96e635]/20">
+        <div className="flex gap-2 md:gap-4 mb-6 border-b border-border/30 overflow-x-auto">
           <button
             onClick={() => setActiveTab("products")}
-            className={`pb-3 px-4 font-medium transition-colors relative ${
+            className={`pb-3 px-3 md:px-4 font-medium transition-colors relative whitespace-nowrap text-sm md:text-base ${
               activeTab === "products" 
-                ? "text-[#96e635]" 
-                : "text-white/60 hover:text-white"
+                ? "text-accent" 
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             Produits
             {activeTab === "products" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#96e635]" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
             )}
           </button>
           <button
             onClick={() => setActiveTab("settings")}
-            className={`pb-3 px-4 font-medium transition-colors relative ${
+            className={`pb-3 px-3 md:px-4 font-medium transition-colors relative whitespace-nowrap text-sm md:text-base ${
               activeTab === "settings" 
-                ? "text-[#96e635]" 
-                : "text-white/60 hover:text-white"
+                ? "text-accent" 
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             <Settings className="w-4 h-4 inline mr-2" />
             Paramètres
             {activeTab === "settings" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#96e635]" />
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
             )}
           </button>
         </div>
@@ -309,21 +358,21 @@ export default function AdminDashboard() {
                         className="w-full h-full object-cover"
                       />
                     )}
-                    <div className="absolute top-2 right-2">
+                    <div className="absolute top-2 right-2 bg-background/80 backdrop-blur-sm rounded-full p-1.5">
                       {product.mediaType === "image" ? (
-                        <Image className="w-5 h-5 text-white" />
+                        <Image className="w-5 h-5 text-accent" />
                       ) : (
-                        <Video className="w-5 h-5 text-white" />
+                        <Video className="w-5 h-5 text-accent" />
                       )}
                     </div>
                   </div>
                   
-                  <h3 className="font-bold text-lg mb-2">{product.name}</h3>
+                  <h3 className="font-bold text-lg mb-2 text-foreground">{product.name}</h3>
                   <div className="flex gap-2 mb-2">
                     <span className="tag-yellow">{product.category}</span>
                     <span className="tag-green">{product.farm}</span>
                   </div>
-                  <p className="text-sm text-white/70 mb-3 line-clamp-2">{product.description}</p>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{product.description}</p>
                   
                   <div className="flex gap-2">
                     <Button 
@@ -356,16 +405,16 @@ export default function AdminDashboard() {
             
             {/* Message d'accueil */}
             <div className="card-shop p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-[#96e635]">Message d'accueil</h3>
+              <h3 className="text-lg font-semibold text-accent">Message d'accueil</h3>
               <div>
-                <Label className="text-white mb-2 block">Message défilant</Label>
+                <Label className="text-foreground mb-2 block">Message défilant</Label>
                 <Input
                   value={settings.welcomeMessage}
                   onChange={(e) => setSettings({ ...settings, welcomeMessage: e.target.value })}
                   placeholder="Bienvenue sur l'app RSlive 👋"
                   className="input-shop"
                 />
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Ce message s&apos;affichera en défilement sur la page d&apos;accueil
                 </p>
               </div>
@@ -373,10 +422,10 @@ export default function AdminDashboard() {
 
             {/* Horaires et Disponibilité */}
             <div className="card-shop p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-[#96e635]">Horaires et Disponibilité</h3>
+              <h3 className="text-lg font-semibold text-accent">Horaires et Disponibilité</h3>
               
               <div>
-                <Label className="text-white mb-2 block">Horaires de prise de commande</Label>
+                <Label className="text-foreground mb-2 block">Horaires de prise de commande</Label>
                 <Input
                   value={settings.orderHours}
                   onChange={(e) => setSettings({ ...settings, orderHours: e.target.value })}
@@ -386,33 +435,33 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <Label className="text-white mb-2 block">Statut Meetup</Label>
+                <Label className="text-foreground mb-2 block">Statut Meetup</Label>
                 <Input
                   value={settings.meetupStatus}
                   onChange={(e) => setSettings({ ...settings, meetupStatus: e.target.value })}
                   placeholder="Disponible"
                   className="input-shop"
                 />
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Ex: Disponible, Indisponible, Sur rendez-vous, etc.
                 </p>
               </div>
 
               <div>
-                <Label className="text-white mb-2 block">Zone de livraison</Label>
+                <Label className="text-foreground mb-2 block">Zone de livraison</Label>
                 <Textarea
                   value={settings.deliveryZone}
                   onChange={(e) => setSettings({ ...settings, deliveryZone: e.target.value })}
                   placeholder="Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault"
                   className="input-shop min-h-[80px]"
                 />
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Listez les départements ou zones couverts
                 </p>
               </div>
 
               <div>
-                <Label className="text-white mb-2 block">Horaires de livraison</Label>
+                <Label className="text-foreground mb-2 block">Horaires de livraison</Label>
                 <Input
                   value={settings.deliveryHours}
                   onChange={(e) => setSettings({ ...settings, deliveryHours: e.target.value })}
@@ -424,10 +473,10 @@ export default function AdminDashboard() {
 
             {/* Liens de contact */}
             <div className="card-shop p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-[#96e635]">Liens de contact</h3>
+              <h3 className="text-lg font-semibold text-accent">Liens de contact</h3>
               
               <div>
-                <Label className="text-white mb-2 block">Lien Telegram</Label>
+                <Label className="text-foreground mb-2 block">Lien Telegram</Label>
                 <Input
                   value={settings.telegramLink}
                   onChange={(e) => setSettings({ ...settings, telegramLink: e.target.value })}
@@ -437,27 +486,27 @@ export default function AdminDashboard() {
               </div>
 
               <div>
-                <Label className="text-white mb-2 block">Lien WhatsApp</Label>
+                <Label className="text-foreground mb-2 block">Lien WhatsApp</Label>
                 <Input
                   value={settings.whatsappLink}
                   onChange={(e) => setSettings({ ...settings, whatsappLink: e.target.value })}
                   placeholder="https://wa.me/33612345678"
                   className="input-shop"
                 />
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Format: https://wa.me/numéro
                 </p>
               </div>
 
               <div>
-                <Label className="text-white mb-2 block">Lien Signal</Label>
+                <Label className="text-foreground mb-2 block">Lien Signal</Label>
                 <Input
                   value={settings.signalLink}
                   onChange={(e) => setSettings({ ...settings, signalLink: e.target.value })}
                   placeholder="https://signal.me/#p/+33612345678"
                   className="input-shop"
                 />
-                <p className="text-sm text-white/60 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Format: https://signal.me/#p/numéro
                 </p>
               </div>
@@ -466,27 +515,27 @@ export default function AdminDashboard() {
             {/* Réseaux sociaux */}
             <div className="card-shop p-6 space-y-4">
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-[#96e635]">Réseaux sociaux</h3>
+                <h3 className="text-lg font-semibold text-accent">Réseaux sociaux</h3>
                 <Button onClick={handleAddSocialNetwork} size="sm" className="btn-primary gap-2">
                   <Plus className="w-4 h-4" />
                   Ajouter
                 </Button>
               </div>
               
-              <p className="text-sm text-white/60 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 Configurez les réseaux sociaux qui seront affichés dans la section Info
               </p>
 
               <div className="space-y-4">
                 {settings.socialNetworks.map((social) => (
-                  <div key={social.id} className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3">
+                  <div key={social.id} className="p-4 rounded-lg bg-card border border-border space-y-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-white">Réseau social</Label>
+                      <Label className="text-foreground">Réseau social</Label>
                       <Button
                         onClick={() => handleRemoveSocialNetwork(social.id)}
                         variant="ghost"
                         size="sm"
-                        className="text-red-400 hover:text-red-300"
+                        className="text-destructive hover:text-destructive/80"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -494,7 +543,7 @@ export default function AdminDashboard() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div>
-                        <Label className="text-white/80 text-xs mb-1 block">Nom du réseau</Label>
+                        <Label className="text-muted-foreground text-xs mb-1 block">Nom du réseau</Label>
                         <Input
                           value={social.name}
                           onChange={(e) => handleSocialNetworkChange(social.id, "name", e.target.value)}
@@ -504,7 +553,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <Label className="text-white/80 text-xs mb-1 block">Nom d'utilisateur</Label>
+                        <Label className="text-muted-foreground text-xs mb-1 block">Nom d'utilisateur</Label>
                         <Input
                           value={social.username}
                           onChange={(e) => handleSocialNetworkChange(social.id, "username", e.target.value)}
@@ -514,7 +563,7 @@ export default function AdminDashboard() {
                       </div>
 
                       <div>
-                        <Label className="text-white/80 text-xs mb-1 block">Lien complet</Label>
+                        <Label className="text-muted-foreground text-xs mb-1 block">Lien complet</Label>
                         <Input
                           value={social.url}
                           onChange={(e) => handleSocialNetworkChange(social.id, "url", e.target.value)}
@@ -527,7 +576,7 @@ export default function AdminDashboard() {
                 ))}
 
                 {settings.socialNetworks.length === 0 && (
-                  <p className="text-center text-white/40 py-8">
+                  <p className="text-center text-muted-foreground py-8">
                     Aucun réseau social configuré. Cliquez sur "Ajouter" pour en créer un.
                   </p>
                 )}
@@ -543,12 +592,12 @@ export default function AdminDashboard() {
 
       {/* Product Dialog */}
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
-        <DialogContent className="bg-[#16291b] text-white border-[#96e635]/20 max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="glass-effect border-accent/20 max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-white">
+            <DialogTitle className="text-2xl font-bold text-foreground">
               {editingProduct ? "Modifier le produit" : "Gestion des produits"}
             </DialogTitle>
-            <p className="text-white/60 text-sm">
+            <p className="text-muted-foreground text-sm">
               Gérez votre catalogue de produits
             </p>
           </DialogHeader>
@@ -557,21 +606,21 @@ export default function AdminDashboard() {
             {/* Nom et Variété */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/80">Nom du produit *</Label>
+                <Label className="text-foreground">Nom du produit *</Label>
                 <Input
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="amnesia OG"
-                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                  className="input-shop"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/80">Variété *</Label>
+                <Label className="text-foreground">Variété *</Label>
                 <Input
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   placeholder="Original amnesia"
-                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                  className="input-shop"
                 />
               </div>
             </div>
@@ -579,30 +628,30 @@ export default function AdminDashboard() {
             {/* Ferme et Catégorie */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-white/80">Ferme *</Label>
+                <Label className="text-foreground">Ferme *</Label>
                 <Input
                   value={formData.farm}
                   onChange={(e) => setFormData({ ...formData, farm: e.target.value })}
                   placeholder="Holland"
-                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                  className="input-shop"
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-white/80">Catégorie</Label>
+                <Label className="text-foreground">Catégorie</Label>
                 <Input
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
                   placeholder="Weed"
-                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                  className="input-shop"
                 />
               </div>
             </div>
 
             {/* Image et Vidéo Upload */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Image Upload */}
               <div className="space-y-2">
-                <Label className="text-white/80">Image du produit</Label>
+                <Label className="text-foreground">Image du produit</Label>
                 <div className="relative">
                   <input
                     type="file"
@@ -616,7 +665,7 @@ export default function AdminDashboard() {
                   />
                   <label
                     htmlFor="image-upload"
-                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-[#96e635]/30 rounded-lg cursor-pointer hover:border-[#96e635]/50 transition-colors bg-[#1a3422]/30"
+                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
                     {formData.mediaUrl && formData.mediaType === "image" ? (
                       <img
@@ -626,11 +675,11 @@ export default function AdminDashboard() {
                       />
                     ) : (
                       <>
-                        <Image className="w-12 h-12 text-[#96e635]/60 mb-2" />
-                        <p className="text-white/60 text-sm text-center px-4">
+                        <Image className="w-12 h-12 text-accent/60 mb-2" />
+                        <p className="text-muted-foreground text-sm text-center px-4">
                           Cliquez pour uploader une image
                         </p>
-                        <p className="text-white/40 text-xs mt-1">
+                        <p className="text-muted-foreground/60 text-xs mt-1">
                           Max 10 Mc • JPG, PNG, WebP
                         </p>
                       </>
@@ -641,7 +690,7 @@ export default function AdminDashboard() {
 
               {/* Video Upload */}
               <div className="space-y-2">
-                <Label className="text-white/80">Vidéo du produit</Label>
+                <Label className="text-foreground">Vidéo du produit</Label>
                 <div className="relative">
                   <input
                     type="file"
@@ -655,7 +704,7 @@ export default function AdminDashboard() {
                   />
                   <label
                     htmlFor="video-upload"
-                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-[#96e635]/30 rounded-lg cursor-pointer hover:border-[#96e635]/50 transition-colors bg-[#1a3422]/30"
+                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
                     {formData.mediaUrl && formData.mediaType === "video" ? (
                       <video
@@ -665,11 +714,11 @@ export default function AdminDashboard() {
                       />
                     ) : (
                       <>
-                        <Video className="w-12 h-12 text-[#96e635]/60 mb-2" />
-                        <p className="text-white/60 text-sm text-center px-4">
+                        <Video className="w-12 h-12 text-accent/60 mb-2" />
+                        <p className="text-muted-foreground text-sm text-center px-4">
                           Cliquez pour uploader une vidéo
                         </p>
-                        <p className="text-white/40 text-xs mt-1">
+                        <p className="text-muted-foreground/60 text-xs mt-1">
                           Max 10 Mc • MP4, WebM
                         </p>
                       </>
@@ -681,25 +730,25 @@ export default function AdminDashboard() {
 
             {/* Description */}
             <div className="space-y-2">
-              <Label className="text-white/80">Description</Label>
+              <Label className="text-foreground">Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Description du produit..."
-                className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40 min-h-[120px] resize-none"
+                className="input-shop min-h-[120px] resize-none"
               />
             </div>
 
             {/* Options de prix */}
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <Label className="text-white/80 text-lg">Options de prix</Label>
+                <Label className="text-foreground text-lg">Options de prix</Label>
                 <Button
                   type="button"
                   onClick={handleAddPrice}
                   variant="ghost"
                   size="sm"
-                  className="text-[#96e635] hover:text-[#96e635] hover:bg-[#96e635]/10"
+                  className="text-accent hover:text-accent hover:bg-accent/10"
                 >
                   <Plus className="w-4 h-4 mr-1" />
                   Ajouter
@@ -710,22 +759,22 @@ export default function AdminDashboard() {
                 {formData.prices.map((price, index) => (
                   <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-end">
                     <div className="space-y-2">
-                      <Label className="text-white/70 text-sm">Poids</Label>
+                      <Label className="text-muted-foreground text-sm">Poids</Label>
                       <Input
                         value={price.weight}
                         onChange={(e) => handlePriceChange(index, "weight", e.target.value)}
                         placeholder="5g"
-                        className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                        className="input-shop"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-white/70 text-sm">Prix (€)</Label>
+                      <Label className="text-muted-foreground text-sm">Prix (€)</Label>
                       <Input
                         type="number"
                         value={price.price}
                         onChange={(e) => handlePriceChange(index, "price", parseFloat(e.target.value) || 0)}
                         placeholder="30"
-                        className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                        className="input-shop"
                       />
                     </div>
                     {formData.prices.length > 1 && (
@@ -734,7 +783,7 @@ export default function AdminDashboard() {
                         onClick={() => handleRemovePrice(index)}
                         variant="ghost"
                         size="sm"
-                        className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
+                        className="text-destructive hover:text-destructive/80 hover:bg-destructive/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -750,13 +799,13 @@ export default function AdminDashboard() {
                 type="button"
                 onClick={() => setShowProductDialog(false)}
                 variant="outline"
-                className="flex-1 border-white/20 text-white hover:bg-white/5"
+                className="flex-1"
               >
                 Annuler
               </Button>
               <Button
                 onClick={handleSaveProduct}
-                className="flex-1 bg-[#96e635] hover:bg-[#7bc42d] text-[#16291b] font-semibold"
+                className="flex-1 btn-primary"
               >
                 {editingProduct ? "Modifier" : "Créer"}
               </Button>
