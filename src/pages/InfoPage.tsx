@@ -32,31 +32,18 @@ const InfoPage = () => {
   const settings = getSettings();
   const navigate = useNavigate();
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [pressProgress, setPressProgress] = useState(0);
 
   const handleLogoTouchStart = () => {
     const timer = setTimeout(() => {
       navigate("/admin");
-      setPressProgress(0);
-    }, 5000); // 5 seconds long press
+    }, 3000); // 3 seconds long press
     setLongPressTimer(timer);
-
-    // Progress animation
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-      progress += 2;
-      setPressProgress(progress);
-      if (progress >= 100) {
-        clearInterval(progressInterval);
-      }
-    }, 100);
   };
 
   const handleLogoTouchEnd = () => {
     if (longPressTimer) {
       clearTimeout(longPressTimer);
       setLongPressTimer(null);
-      setPressProgress(0);
     }
   };
   
@@ -64,26 +51,16 @@ const InfoPage = () => {
     <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header with logo */}
       <div className="pt-6 pb-4 flex justify-center relative z-10">
-        <div className="relative">
-          <img 
-            src={logo} 
-            alt="RSLIV Logo" 
-            className="w-32 h-32 object-contain drop-shadow-2xl cursor-pointer select-none transition-transform active:scale-95" 
-            onTouchStart={handleLogoTouchStart}
-            onTouchEnd={handleLogoTouchEnd}
-            onMouseDown={handleLogoTouchStart}
-            onMouseUp={handleLogoTouchEnd}
-            onMouseLeave={handleLogoTouchEnd}
-          />
-          {pressProgress > 0 && (
-            <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-24 h-1.5 bg-border/30 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-accent transition-all duration-100"
-                style={{ width: `${pressProgress}%` }}
-              />
-            </div>
-          )}
-        </div>
+        <img 
+          src={logo} 
+          alt="RSLIV Logo" 
+          className="w-32 h-32 object-contain drop-shadow-2xl cursor-pointer select-none transition-transform active:scale-95" 
+          onTouchStart={handleLogoTouchStart}
+          onTouchEnd={handleLogoTouchEnd}
+          onMouseDown={handleLogoTouchStart}
+          onMouseUp={handleLogoTouchEnd}
+          onMouseLeave={handleLogoTouchEnd}
+        />
       </div>
 
       {/* Title */}
