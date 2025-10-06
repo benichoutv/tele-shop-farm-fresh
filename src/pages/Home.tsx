@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Home as HomeIcon, Info, ShoppingCart } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import ProductModal from "@/components/ProductModal";
 import {
@@ -88,11 +88,29 @@ const Home = () => {
   // Mock Telegram username
   const telegramUsername = "Benichou";
 
+  // Long press detection for admin access
+  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+  const navigate = useNavigate();
+
   // Load welcome message from localStorage
   useEffect(() => {
     const message = localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋";
     setWelcomeMessage(message);
   }, []);
+
+  const handleLogoTouchStart = () => {
+    const timer = setTimeout(() => {
+      navigate("/admin/dashboard");
+    }, 1500); // 1.5 seconds long press
+    setLongPressTimer(timer);
+  };
+
+  const handleLogoTouchEnd = () => {
+    if (longPressTimer) {
+      clearTimeout(longPressTimer);
+      setLongPressTimer(null);
+    }
+  };
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -108,7 +126,16 @@ const Home = () => {
     <div className="min-h-screen bg-gradient-to-b from-background via-background to-card/30 pb-24 logo-watermark">
       {/* Header with logo */}
       <div className="pt-1 pb-1 flex justify-center relative z-10 bg-card/50 backdrop-blur-sm border-b border-border/30">
-        <img src={logo} alt="RSLIV Logo" className="w-28 h-28 object-contain drop-shadow-2xl" />
+        <img 
+          src={logo} 
+          alt="RSLIV Logo" 
+          className="w-28 h-28 object-contain drop-shadow-2xl cursor-pointer select-none" 
+          onTouchStart={handleLogoTouchStart}
+          onTouchEnd={handleLogoTouchEnd}
+          onMouseDown={handleLogoTouchStart}
+          onMouseUp={handleLogoTouchEnd}
+          onMouseLeave={handleLogoTouchEnd}
+        />
       </div>
 
       {/* Welcome message */}
