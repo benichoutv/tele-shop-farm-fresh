@@ -72,6 +72,18 @@ export default function AdminDashboard() {
     prices: [{ weight: "1g", price: 0 }]
   });
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData({ ...formData, mediaUrl: reader.result as string });
+      toast({ title: `${formData.mediaType === "image" ? "Image" : "Vidéo"} chargée avec succès` });
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleLogout = () => {
     navigate("/admin");
     toast({ title: "Déconnexion réussie" });
@@ -396,9 +408,9 @@ export default function AdminDashboard() {
 
             <div>
               <Label className="text-white mb-2 block">Type de média</Label>
-              <div className="flex gap-4 mb-2">
+              <div className="flex gap-4 mb-4">
                 <button
-                  onClick={() => setFormData({ ...formData, mediaType: "image" })}
+                  onClick={() => setFormData({ ...formData, mediaType: "image", mediaUrl: "" })}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
                     formData.mediaType === "image" 
                       ? "bg-[#96e635] text-[#16291b]" 
@@ -409,7 +421,7 @@ export default function AdminDashboard() {
                   Image
                 </button>
                 <button
-                  onClick={() => setFormData({ ...formData, mediaType: "video" })}
+                  onClick={() => setFormData({ ...formData, mediaType: "video", mediaUrl: "" })}
                   className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
                     formData.mediaType === "video" 
                       ? "bg-[#96e635] text-[#16291b]" 
@@ -420,12 +432,73 @@ export default function AdminDashboard() {
                   Vidéo
                 </button>
               </div>
-              <Input
-                value={formData.mediaUrl}
-                onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
-                placeholder="URL de l'image ou vidéo"
-                className="input-shop"
-              />
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Image Upload */}
+                <div>
+                  <Label className="text-white mb-2 block">
+                    {formData.mediaType === "image" ? "Image du produit" : "Vidéo du produit"}
+                  </Label>
+                  <label className="block">
+                    <input
+                      type="file"
+                      accept={formData.mediaType === "image" ? "image/jpeg,image/jpg,image/png,image/webp" : "video/mp4,video/webm"}
+                      onChange={handleFileUpload}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <div className="border-2 border-dashed border-[#96e635]/30 rounded-lg p-8 text-center hover:border-[#96e635]/60 transition-colors cursor-pointer bg-white/5">
+                      {formData.mediaUrl ? (
+                        <div className="space-y-2">
+                          {formData.mediaType === "image" ? (
+                            <img 
+                              src={formData.mediaUrl} 
+                              alt="Preview" 
+                              className="w-full h-32 object-cover rounded-md mb-2"
+                            />
+                          ) : (
+                            <video 
+                              src={formData.mediaUrl} 
+                              className="w-full h-32 object-cover rounded-md mb-2"
+                              controls
+                            />
+                          )}
+                          <p className="text-xs text-[#96e635]">Fichier chargé</p>
+                        </div>
+                      ) : (
+                        <>
+                          {formData.mediaType === "image" ? (
+                            <Image className="w-12 h-12 mx-auto mb-2 text-white/40" />
+                          ) : (
+                            <Video className="w-12 h-12 mx-auto mb-2 text-white/40" />
+                          )}
+                          <p className="text-sm text-white/60">Cliquez pour uploader</p>
+                          <p className="text-xs text-white/40 mt-1">
+                            {formData.mediaType === "image" 
+                              ? "Max 10 Mc • JPG, PNG, WebP"
+                              : "Max 10 Mc • MP4, WebM"
+                            }
+                          </p>
+                        </>
+                      )}
+                    </div>
+                  </label>
+                </div>
+
+                {/* URL Alternative */}
+                <div>
+                  <Label className="text-white mb-2 block">Ou URL du média</Label>
+                  <Textarea
+                    value={formData.mediaUrl.startsWith('data:') ? '' : formData.mediaUrl}
+                    onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
+                    placeholder="https://exemple.com/image.jpg"
+                    className="input-shop h-[200px]"
+                  />
+                  <p className="text-xs text-white/40 mt-1">
+                    Entrez une URL si vous préférez
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div>
