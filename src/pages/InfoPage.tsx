@@ -1,6 +1,13 @@
-import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck } from "lucide-react";
+import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck, Send } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
+
+// Mock settings - à remplacer par les vraies données du backend
+const mockSettings = {
+  telegramLink: "https://t.me/RSliv",
+  whatsappLink: "https://wa.me/33612345678",
+  signalLink: "https://signal.me/#p/+33612345678"
+};
 
 const InfoPage = () => {
   return (
@@ -54,6 +61,61 @@ const InfoPage = () => {
               </p>
               <p className="text-[hsl(var(--accent))] font-semibold ml-6">11h - 00h</p>
             </div>
+          </div>
+        </div>
+
+        {/* Commander via Section */}
+        <div className="card-shop p-5">
+          <h2 className="text-xl font-bold text-foreground mb-2">Commander via</h2>
+          <p className="text-muted-foreground text-sm mb-4">
+            Vous pouvez passer commande ou obtenir plus d'infos directement via :
+          </p>
+
+          <div className="space-y-3">
+            <a
+              href={mockSettings.telegramLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#0088cc]/20 to-[#0088cc]/10 border border-[#0088cc]/30 hover:border-[#0088cc] transition-all hover:scale-[1.02]"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Telegram</p>
+                <p className="text-xs text-muted-foreground">Messagerie sécurisée</p>
+              </div>
+            </a>
+
+            <a
+              href={mockSettings.whatsappLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#25D366]/20 to-[#25D366]/10 border border-[#25D366]/30 hover:border-[#25D366] transition-all hover:scale-[1.02]"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">WhatsApp</p>
+                <p className="text-xs text-muted-foreground">Réponse rapide</p>
+              </div>
+            </a>
+
+            <a
+              href={mockSettings.signalLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#3a76f0]/20 to-[#3a76f0]/10 border border-[#3a76f0]/30 hover:border-[#3a76f0] transition-all hover:scale-[1.02]"
+            >
+              <div className="w-10 h-10 rounded-full bg-[#3a76f0] flex items-center justify-center">
+                <Send className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="font-semibold text-foreground">Signal</p>
+                <p className="text-xs text-muted-foreground">Confidentialité maximale</p>
+              </div>
+            </a>
           </div>
         </div>
 

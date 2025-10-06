@@ -8,6 +8,7 @@ import InfoPage from "./pages/InfoPage";
 import Cart from "./pages/Cart";
 import ProductDetail from "./pages/ProductDetail";
 import AdminLogin from "./pages/AdminLogin";
+import AdminDashboard from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
