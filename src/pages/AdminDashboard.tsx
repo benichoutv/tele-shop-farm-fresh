@@ -464,185 +464,198 @@ export default function AdminDashboard() {
 
       {/* Product Dialog */}
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
-        <DialogContent className="bg-[#16291b] text-white border-[#96e635]/20 max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="bg-[#16291b] text-white border-[#96e635]/20 max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-2xl">
-              {editingProduct ? "Modifier le produit" : "Ajouter un produit"}
+            <DialogTitle className="text-2xl font-bold text-white">
+              {editingProduct ? "Modifier le produit" : "Gestion des produits"}
             </DialogTitle>
+            <p className="text-white/60 text-sm">
+              Gérez votre catalogue de produits
+            </p>
           </DialogHeader>
 
-          <div className="space-y-4">
-            <div>
-              <Label className="text-white mb-2 block">Nom du produit *</Label>
-              <Input
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="Ex: Amnesia Haze"
-                className="input-shop"
-              />
-            </div>
-
+          <div className="space-y-6 mt-6">
+            {/* Nom et Variété */}
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="text-white mb-2 block">Catégorie *</Label>
+              <div className="space-y-2">
+                <Label className="text-white/80">Nom du produit *</Label>
+                <Input
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="amnesia OG"
+                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white/80">Variété *</Label>
                 <Input
                   value={formData.category}
                   onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  placeholder="Ex: Sativa"
-                  className="input-shop"
-                />
-              </div>
-              <div>
-                <Label className="text-white mb-2 block">Ferme *</Label>
-                <Input
-                  value={formData.farm}
-                  onChange={(e) => setFormData({ ...formData, farm: e.target.value })}
-                  placeholder="Ex: Green Valley"
-                  className="input-shop"
+                  placeholder="Original amnesia"
+                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
                 />
               </div>
             </div>
 
-            <div>
-              <Label className="text-white mb-2 block">Description</Label>
+            {/* Ferme et Catégorie */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-white/80">Ferme *</Label>
+                <Input
+                  value={formData.farm}
+                  onChange={(e) => setFormData({ ...formData, farm: e.target.value })}
+                  placeholder="Holland"
+                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-white/80">Catégorie</Label>
+                <Input
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  placeholder="Weed"
+                  className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                />
+              </div>
+            </div>
+
+            {/* Image et Vidéo Upload */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Image Upload */}
+              <div className="space-y-2">
+                <Label className="text-white/80">Image du produit</Label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      setFormData({ ...formData, mediaType: "image" });
+                      handleFileUpload(e);
+                    }}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <label
+                    htmlFor="image-upload"
+                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-[#96e635]/30 rounded-lg cursor-pointer hover:border-[#96e635]/50 transition-colors bg-[#1a3422]/30"
+                  >
+                    {formData.mediaUrl && formData.mediaType === "image" ? (
+                      <img
+                        src={formData.mediaUrl}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (
+                      <>
+                        <Image className="w-12 h-12 text-[#96e635]/60 mb-2" />
+                        <p className="text-white/60 text-sm text-center px-4">
+                          Cliquez pour uploader une image
+                        </p>
+                        <p className="text-white/40 text-xs mt-1">
+                          Max 10 Mc • JPG, PNG, WebP
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              {/* Video Upload */}
+              <div className="space-y-2">
+                <Label className="text-white/80">Vidéo du produit</Label>
+                <div className="relative">
+                  <input
+                    type="file"
+                    accept="video/*"
+                    onChange={(e) => {
+                      setFormData({ ...formData, mediaType: "video" });
+                      handleFileUpload(e);
+                    }}
+                    className="hidden"
+                    id="video-upload"
+                  />
+                  <label
+                    htmlFor="video-upload"
+                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-[#96e635]/30 rounded-lg cursor-pointer hover:border-[#96e635]/50 transition-colors bg-[#1a3422]/30"
+                  >
+                    {formData.mediaUrl && formData.mediaType === "video" ? (
+                      <video
+                        src={formData.mediaUrl}
+                        className="w-full h-full object-cover rounded-lg"
+                        controls
+                      />
+                    ) : (
+                      <>
+                        <Video className="w-12 h-12 text-[#96e635]/60 mb-2" />
+                        <p className="text-white/60 text-sm text-center px-4">
+                          Cliquez pour uploader une vidéo
+                        </p>
+                        <p className="text-white/40 text-xs mt-1">
+                          Max 10 Mc • MP4, WebM
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label className="text-white/80">Description</Label>
               <Textarea
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Description du produit..."
-                className="input-shop min-h-[100px]"
+                className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40 min-h-[120px] resize-none"
               />
             </div>
 
-            <div>
-              <Label className="text-white mb-2 block">Type de média</Label>
-              <div className="flex gap-4 mb-4">
-                <button
-                  onClick={() => setFormData({ ...formData, mediaType: "image", mediaUrl: "" })}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    formData.mediaType === "image" 
-                      ? "bg-[#96e635] text-[#16291b]" 
-                      : "bg-white/10 text-white"
-                  }`}
-                >
-                  <Image className="w-4 h-4" />
-                  Image
-                </button>
-                <button
-                  onClick={() => setFormData({ ...formData, mediaType: "video", mediaUrl: "" })}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                    formData.mediaType === "video" 
-                      ? "bg-[#96e635] text-[#16291b]" 
-                      : "bg-white/10 text-white"
-                  }`}
-                >
-                  <Video className="w-4 h-4" />
-                  Vidéo
-                </button>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                {/* Image Upload */}
-                <div>
-                  <Label className="text-white mb-2 block">
-                    {formData.mediaType === "image" ? "Image du produit" : "Vidéo du produit"}
-                  </Label>
-                  <label className="block">
-                    <input
-                      type="file"
-                      accept={formData.mediaType === "image" ? "image/jpeg,image/jpg,image/png,image/webp" : "video/mp4,video/webm"}
-                      onChange={handleFileUpload}
-                      className="hidden"
-                      id="file-upload"
-                    />
-                    <div className="border-2 border-dashed border-[#96e635]/30 rounded-lg p-8 text-center hover:border-[#96e635]/60 transition-colors cursor-pointer bg-white/5">
-                      {formData.mediaUrl ? (
-                        <div className="space-y-2">
-                          {formData.mediaType === "image" ? (
-                            <img 
-                              src={formData.mediaUrl} 
-                              alt="Preview" 
-                              className="w-full h-32 object-cover rounded-md mb-2"
-                            />
-                          ) : (
-                            <video 
-                              src={formData.mediaUrl} 
-                              className="w-full h-32 object-cover rounded-md mb-2"
-                              controls
-                            />
-                          )}
-                          <p className="text-xs text-[#96e635]">Fichier chargé</p>
-                        </div>
-                      ) : (
-                        <>
-                          {formData.mediaType === "image" ? (
-                            <Image className="w-12 h-12 mx-auto mb-2 text-white/40" />
-                          ) : (
-                            <Video className="w-12 h-12 mx-auto mb-2 text-white/40" />
-                          )}
-                          <p className="text-sm text-white/60">Cliquez pour uploader</p>
-                          <p className="text-xs text-white/40 mt-1">
-                            {formData.mediaType === "image" 
-                              ? "Max 10 Mc • JPG, PNG, WebP"
-                              : "Max 10 Mc • MP4, WebM"
-                            }
-                          </p>
-                        </>
-                      )}
-                    </div>
-                  </label>
-                </div>
-
-                {/* URL Alternative */}
-                <div>
-                  <Label className="text-white mb-2 block">Ou URL du média</Label>
-                  <Textarea
-                    value={formData.mediaUrl.startsWith('data:') ? '' : formData.mediaUrl}
-                    onChange={(e) => setFormData({ ...formData, mediaUrl: e.target.value })}
-                    placeholder="https://exemple.com/image.jpg"
-                    className="input-shop h-[200px]"
-                  />
-                  <p className="text-xs text-white/40 mt-1">
-                    Entrez une URL si vous préférez
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-white">Prix par poids</Label>
-                <Button 
+            {/* Options de prix */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-white/80 text-lg">Options de prix</Label>
+                <Button
+                  type="button"
                   onClick={handleAddPrice}
+                  variant="ghost"
                   size="sm"
-                  variant="outline"
-                  className="text-xs"
+                  className="text-[#96e635] hover:text-[#96e635] hover:bg-[#96e635]/10"
                 >
-                  <Plus className="w-3 h-3 mr-1" />
-                  Ajouter un prix
+                  <Plus className="w-4 h-4 mr-1" />
+                  Ajouter
                 </Button>
               </div>
-              
-              <div className="space-y-2">
+
+              <div className="space-y-3">
                 {formData.prices.map((price, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={price.weight}
-                      onChange={(e) => handlePriceChange(index, "weight", e.target.value)}
-                      placeholder="Ex: 1g"
-                      className="input-shop flex-1"
-                    />
-                    <Input
-                      type="number"
-                      value={price.price}
-                      onChange={(e) => handlePriceChange(index, "price", parseFloat(e.target.value))}
-                      placeholder="Prix"
-                      className="input-shop flex-1"
-                    />
+                  <div key={index} className="grid grid-cols-[1fr_1fr_auto] gap-3 items-end">
+                    <div className="space-y-2">
+                      <Label className="text-white/70 text-sm">Poids</Label>
+                      <Input
+                        value={price.weight}
+                        onChange={(e) => handlePriceChange(index, "weight", e.target.value)}
+                        placeholder="5g"
+                        className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-white/70 text-sm">Prix (€)</Label>
+                      <Input
+                        type="number"
+                        value={price.price}
+                        onChange={(e) => handlePriceChange(index, "price", parseFloat(e.target.value) || 0)}
+                        placeholder="30"
+                        className="input-shop bg-[#1a3422] border-[#96e635]/30 text-white placeholder:text-white/40"
+                      />
+                    </div>
                     {formData.prices.length > 1 && (
                       <Button
+                        type="button"
                         onClick={() => handleRemovePrice(index)}
+                        variant="ghost"
                         size="sm"
-                        variant="destructive"
+                        className="text-red-400 hover:text-red-300 hover:bg-red-400/10"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -652,19 +665,21 @@ export default function AdminDashboard() {
               </div>
             </div>
 
+            {/* Buttons */}
             <div className="flex gap-3 pt-4">
-              <Button 
+              <Button
+                type="button"
                 onClick={() => setShowProductDialog(false)}
                 variant="outline"
-                className="flex-1"
+                className="flex-1 border-white/20 text-white hover:bg-white/5"
               >
                 Annuler
               </Button>
-              <Button 
+              <Button
                 onClick={handleSaveProduct}
-                className="btn-primary flex-1"
+                className="flex-1 bg-[#96e635] hover:bg-[#7bc42d] text-[#16291b] font-semibold"
               >
-                {editingProduct ? "Modifier" : "Ajouter"}
+                {editingProduct ? "Modifier" : "Créer"}
               </Button>
             </div>
           </div>
