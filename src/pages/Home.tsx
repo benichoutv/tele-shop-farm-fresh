@@ -102,16 +102,16 @@ const Home = () => {
   return (
     <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header with logo */}
-      <div className="pt-6 pb-4 flex justify-center relative z-10">
-        <img src={logo} alt="RSLIV Logo" className="w-32 h-32 object-contain drop-shadow-2xl" />
+      <div className="pt-6 pb-6 flex justify-center relative z-10 bg-card/50 backdrop-blur-sm border-b border-border/30">
+        <img src={logo} alt="RSLIV Logo" className="w-52 h-52 object-contain drop-shadow-2xl" />
       </div>
 
       {/* Welcome message */}
-      <div className="text-center mb-8 px-4 relative z-10">
-        <h1 className="text-3xl font-bold text-foreground mb-2 animate-fade-in">
+      <div className="text-center mb-8 px-4 relative z-10 mt-6">
+        <h1 className="text-xl font-bold text-foreground mb-1 animate-fade-in">
           Salut <span className="gradient-text">{telegramUsername}</span> 👋
         </h1>
-        <p className="text-lg font-medium text-muted-foreground">Liste des produits</p>
+        <p className="text-sm font-medium text-muted-foreground">Liste des produits</p>
       </div>
 
       {/* Filters */}
