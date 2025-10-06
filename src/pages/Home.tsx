@@ -105,11 +105,13 @@ const Home = () => {
       </div>
 
       {/* Welcome message */}
-      <div className="text-center mb-4 px-4 relative z-10 mt-3">
-        <h1 className="text-lg font-bold text-foreground mb-0.5 animate-fade-in">
-          Salut <span className="gradient-text">{telegramUsername}</span> 👋
-        </h1>
-        <p className="text-xs font-medium text-muted-foreground">Liste des produits</p>
+      <div className="text-center mb-4 px-4 relative z-10 mt-3 overflow-hidden">
+        <div className="scrolling-text">
+          <span className="text-lg font-bold text-foreground animate-fade-in">
+            Bienvenue sur l&apos;app RSlive 👋 {telegramUsername}
+          </span>
+        </div>
+        <p className="text-xs font-medium text-muted-foreground mt-1">Liste des produits</p>
       </div>
 
       {/* Filter by category */}

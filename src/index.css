@@ -180,4 +180,24 @@ All colors MUST be HSL.
       transform: translateY(-10px);
     }
   }
+
+  @keyframes scroll {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+
+  .scrolling-text {
+    display: flex;
+    white-space: nowrap;
+    animation: scroll 15s linear infinite;
+  }
+
+  .scrolling-text span {
+    display: inline-block;
+    padding: 0 2rem;
+  }
 }
