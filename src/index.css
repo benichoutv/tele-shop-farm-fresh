@@ -75,16 +75,17 @@ All colors MUST be HSL.
     position: fixed;
     top: 50%;
     left: 50%;
-    width: 600px;
-    height: 600px;
+    width: 700px;
+    height: 700px;
     background-image: url('/src/assets/logo.png');
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.06;
+    opacity: 0.12;
     transform: translate(-50%, -50%);
     pointer-events: none;
     z-index: 0;
+    filter: brightness(1.2);
   }
 
   .tag-yellow {
@@ -98,7 +99,7 @@ All colors MUST be HSL.
   }
 
   .btn-primary {
-    @apply bg-[hsl(var(--accent))] text-[hsl(var(--primary))] hover:bg-[hsl(var(--accent))]/90 font-semibold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98];
+    @apply bg-[hsl(var(--accent))] text-black hover:bg-[hsl(var(--accent))]/90 font-bold rounded-xl transition-all duration-300 shadow-[0_0_30px_rgba(150,230,53,0.5)] hover:shadow-[0_0_40px_rgba(150,230,53,0.7)] hover:scale-[1.03] active:scale-[0.98] border-2 border-[hsl(var(--accent))]/50;
   }
 
   .card-shop {

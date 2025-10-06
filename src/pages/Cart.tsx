@@ -47,7 +47,7 @@ const Cart = () => {
     <div className="min-h-screen bg-background pb-24 logo-watermark">
       {/* Header with logo */}
       <div className="pt-6 pb-4 flex justify-center relative z-10">
-        <img src={logo} alt="RSLIV Logo" className="w-24 h-24 object-contain drop-shadow-2xl" />
+        <img src={logo} alt="RSLIV Logo" className="w-32 h-32 object-contain drop-shadow-2xl" />
       </div>
 
       {/* Title */}
