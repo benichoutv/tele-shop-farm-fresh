@@ -24,6 +24,13 @@ interface Product {
   prices: ProductPrice[];
 }
 
+interface SocialNetwork {
+  id: string;
+  name: string;
+  username: string;
+  url: string;
+}
+
 interface AppSettings {
   welcomeMessage: string;
   telegramLink: string;
@@ -33,8 +40,7 @@ interface AppSettings {
   meetupStatus: string;
   deliveryZone: string;
   deliveryHours: string;
-  telegramSocial: string;
-  snapchatSocial: string;
+  socialNetworks: SocialNetwork[];
 }
 
 export default function AdminDashboard() {
@@ -61,17 +67,22 @@ export default function AdminDashboard() {
     }
   ]);
 
-  const [settings, setSettings] = useState<AppSettings>({
-    welcomeMessage: localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋",
-    telegramLink: localStorage.getItem("telegramLink") || "https://t.me/votre_compte",
-    whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
-    signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
-    orderHours: localStorage.getItem("orderHours") || "11h - 00h",
-    meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
-    deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
-    deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
-    telegramSocial: localStorage.getItem("telegramSocial") || "@RSliv",
-    snapchatSocial: localStorage.getItem("snapchatSocial") || "rsliv"
+  const [settings, setSettings] = useState<AppSettings>(() => {
+    const savedSocialNetworks = localStorage.getItem("socialNetworks");
+    return {
+      welcomeMessage: localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋",
+      telegramLink: localStorage.getItem("telegramLink") || "https://t.me/votre_compte",
+      whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
+      signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
+      orderHours: localStorage.getItem("orderHours") || "11h - 00h",
+      meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
+      deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
+      deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
+      socialNetworks: savedSocialNetworks ? JSON.parse(savedSocialNetworks) : [
+        { id: "1", name: "Telegram", username: "@RSliv", url: "https://t.me/RSliv" },
+        { id: "2", name: "Snapchat", username: "rsliv", url: "https://snapchat.com/add/rsliv" }
+      ]
+    };
   });
 
   const [formData, setFormData] = useState({
@@ -181,6 +192,35 @@ export default function AdminDashboard() {
     setFormData({ ...formData, prices: newPrices });
   };
 
+  const handleAddSocialNetwork = () => {
+    const newSocial: SocialNetwork = {
+      id: Date.now().toString(),
+      name: "",
+      username: "",
+      url: ""
+    };
+    setSettings({
+      ...settings,
+      socialNetworks: [...settings.socialNetworks, newSocial]
+    });
+  };
+
+  const handleRemoveSocialNetwork = (id: string) => {
+    setSettings({
+      ...settings,
+      socialNetworks: settings.socialNetworks.filter(s => s.id !== id)
+    });
+  };
+
+  const handleSocialNetworkChange = (id: string, field: keyof SocialNetwork, value: string) => {
+    setSettings({
+      ...settings,
+      socialNetworks: settings.socialNetworks.map(s =>
+        s.id === id ? { ...s, [field]: value } : s
+      )
+    });
+  };
+
   const handleSaveSettings = () => {
     localStorage.setItem("welcomeMessage", settings.welcomeMessage);
     localStorage.setItem("telegramLink", settings.telegramLink);
@@ -190,8 +230,7 @@ export default function AdminDashboard() {
     localStorage.setItem("meetupStatus", settings.meetupStatus);
     localStorage.setItem("deliveryZone", settings.deliveryZone);
     localStorage.setItem("deliveryHours", settings.deliveryHours);
-    localStorage.setItem("telegramSocial", settings.telegramSocial);
-    localStorage.setItem("snapchatSocial", settings.snapchatSocial);
+    localStorage.setItem("socialNetworks", JSON.stringify(settings.socialNetworks));
     toast({ title: "Paramètres sauvegardés avec succès" });
   };
 
@@ -426,32 +465,72 @@ export default function AdminDashboard() {
 
             {/* Réseaux sociaux */}
             <div className="card-shop p-6 space-y-4">
-              <h3 className="text-lg font-semibold text-[#96e635]">Réseaux sociaux</h3>
-              
-              <div>
-                <Label className="text-white mb-2 block">Telegram (identifiant)</Label>
-                <Input
-                  value={settings.telegramSocial}
-                  onChange={(e) => setSettings({ ...settings, telegramSocial: e.target.value })}
-                  placeholder="@RSliv"
-                  className="input-shop"
-                />
-                <p className="text-sm text-white/60 mt-1">
-                  L'identifiant Telegram avec @ (ex: @RSliv)
-                </p>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-lg font-semibold text-[#96e635]">Réseaux sociaux</h3>
+                <Button onClick={handleAddSocialNetwork} size="sm" className="btn-primary gap-2">
+                  <Plus className="w-4 h-4" />
+                  Ajouter
+                </Button>
               </div>
+              
+              <p className="text-sm text-white/60 mb-4">
+                Configurez les réseaux sociaux qui seront affichés dans la section Info
+              </p>
 
-              <div>
-                <Label className="text-white mb-2 block">Snapchat (nom d'utilisateur)</Label>
-                <Input
-                  value={settings.snapchatSocial}
-                  onChange={(e) => setSettings({ ...settings, snapchatSocial: e.target.value })}
-                  placeholder="rsliv"
-                  className="input-shop"
-                />
-                <p className="text-sm text-white/60 mt-1">
-                  Le nom d'utilisateur Snapchat sans @
-                </p>
+              <div className="space-y-4">
+                {settings.socialNetworks.map((social) => (
+                  <div key={social.id} className="p-4 rounded-lg bg-white/5 border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-white">Réseau social</Label>
+                      <Button
+                        onClick={() => handleRemoveSocialNetwork(social.id)}
+                        variant="ghost"
+                        size="sm"
+                        className="text-red-400 hover:text-red-300"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      <div>
+                        <Label className="text-white/80 text-xs mb-1 block">Nom du réseau</Label>
+                        <Input
+                          value={social.name}
+                          onChange={(e) => handleSocialNetworkChange(social.id, "name", e.target.value)}
+                          placeholder="Ex: Instagram, Twitter..."
+                          className="input-shop"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white/80 text-xs mb-1 block">Nom d'utilisateur</Label>
+                        <Input
+                          value={social.username}
+                          onChange={(e) => handleSocialNetworkChange(social.id, "username", e.target.value)}
+                          placeholder="@utilisateur"
+                          className="input-shop"
+                        />
+                      </div>
+
+                      <div>
+                        <Label className="text-white/80 text-xs mb-1 block">Lien complet</Label>
+                        <Input
+                          value={social.url}
+                          onChange={(e) => handleSocialNetworkChange(social.id, "url", e.target.value)}
+                          placeholder="https://..."
+                          className="input-shop"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+
+                {settings.socialNetworks.length === 0 && (
+                  <p className="text-center text-white/40 py-8">
+                    Aucun réseau social configuré. Cliquez sur "Ajouter" pour en créer un.
+                  </p>
+                )}
               </div>
             </div>
 

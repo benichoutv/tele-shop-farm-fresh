@@ -2,18 +2,30 @@ import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck, Send
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 
+interface SocialNetwork {
+  id: string;
+  name: string;
+  username: string;
+  url: string;
+}
+
 // Récupération des paramètres depuis localStorage
-const getSettings = () => ({
-  telegramLink: localStorage.getItem("telegramLink") || "https://t.me/RSliv",
-  whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
-  signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
-  orderHours: localStorage.getItem("orderHours") || "11h - 00h",
-  meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
-  deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
-  deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
-  telegramSocial: localStorage.getItem("telegramSocial") || "@RSliv",
-  snapchatSocial: localStorage.getItem("snapchatSocial") || "rsliv"
-});
+const getSettings = () => {
+  const savedSocialNetworks = localStorage.getItem("socialNetworks");
+  return {
+    telegramLink: localStorage.getItem("telegramLink") || "https://t.me/RSliv",
+    whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
+    signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
+    orderHours: localStorage.getItem("orderHours") || "11h - 00h",
+    meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
+    deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
+    deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
+    socialNetworks: savedSocialNetworks ? JSON.parse(savedSocialNetworks) as SocialNetwork[] : [
+      { id: "1", name: "Telegram", username: "@RSliv", url: "https://t.me/RSliv" },
+      { id: "2", name: "Snapchat", username: "rsliv", url: "https://snapchat.com/add/rsliv" }
+    ]
+  };
+};
 
 const InfoPage = () => {
   const settings = getSettings();
@@ -128,41 +140,31 @@ const InfoPage = () => {
         </div>
 
         {/* Social Networks Section */}
-        <div className="card-shop p-5">
-          <h2 className="text-xl font-bold text-foreground mb-4">Nos Réseaux</h2>
+        {settings.socialNetworks.length > 0 && (
+          <div className="card-shop p-5">
+            <h2 className="text-xl font-bold text-foreground mb-4">Nos Réseaux</h2>
 
-          <div className="space-y-3">
-            <a
-              href={`https://t.me/${settings.telegramSocial.replace('@', '')}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-[hsl(var(--accent))]" />
-              </div>
-              <div>
-                <p className="font-semibold text-[hsl(var(--primary))]">Telegram</p>
-                <p className="text-sm text-[hsl(var(--primary))]/80">{settings.telegramSocial}</p>
-              </div>
-            </a>
-
-            <a
-              href={`https://snapchat.com/add/${settings.snapchatSocial}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--tag-yellow))] hover:bg-[hsl(var(--tag-yellow))]/90 transition-colors"
-            >
-              <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-[hsl(var(--tag-yellow))]" />
-              </div>
-              <div>
-                <p className="font-semibold text-[hsl(var(--primary))]">Snapchat</p>
-                <p className="text-sm text-[hsl(var(--primary))]/80">{settings.snapchatSocial}</p>
-              </div>
-            </a>
+            <div className="space-y-3">
+              {settings.socialNetworks.map((social) => (
+                <a
+                  key={social.id}
+                  href={social.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5 text-[hsl(var(--accent))]" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-[hsl(var(--primary))]">{social.name}</p>
+                    <p className="text-sm text-[hsl(var(--primary))]/80">{social.username}</p>
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Bottom Navigation */}
