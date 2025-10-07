@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
@@ -8,6 +8,7 @@ import signalLogo from "@/assets/signal-logo.png";
 import snapchatLogo from "@/assets/snapchat-logo.png";
 import potatoLogo from "@/assets/potato-logo.png";
 import instagramLogo from "@/assets/instagram-logo.png";
+import { settingsApi } from "@/lib/api";
 
 interface SocialNetwork {
   id: string;
@@ -47,9 +48,33 @@ const getSettings = () => {
 };
 
 const InfoPage = () => {
-  const settings = getSettings();
+  const [settings, setSettings] = useState(getSettings());
   const navigate = useNavigate();
   const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await settingsApi.getAll();
+        if (!mounted) return;
+        setSettings(prev => ({
+          ...prev,
+          telegramLink: data.telegram_contact ?? prev.telegramLink,
+          whatsappLink: data.whatsapp_link ?? prev.whatsappLink,
+          signalLink: data.signal_link ?? prev.signalLink,
+          orderHours: data.order_hours ?? prev.orderHours,
+          meetupStatus: data.meetup_status ?? prev.meetupStatus,
+          deliveryZone: data.delivery_zone ?? prev.deliveryZone,
+          deliveryHours: data.delivery_hours ?? prev.deliveryHours,
+          socialNetworks: data.social_networks ? JSON.parse(data.social_networks) : prev.socialNetworks,
+        }));
+      } catch (e) {
+        console.error('Erreur chargement paramètres:', e);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const handleLogoTouchStart = () => {
     const timer = setTimeout(() => {
