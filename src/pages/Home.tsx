@@ -3,9 +3,6 @@ import { Home as HomeIcon, Info, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import ProductModal from "@/components/ProductModal";
-import { productsApi, categoriesApi, settingsApi } from "@/lib/api";
-import { toast } from "sonner";
-import { useCart } from "@/contexts/CartContext";
 import {
   Select,
   SelectContent,
@@ -31,63 +28,71 @@ interface Product {
   prices: ProductPrice[];
 }
 
+// Mock data
+const products: Product[] = [
+  {
+    id: 1,
+    name: "amnesia OG",
+    variety: "Original amnesia",
+    farm: "Holland",
+    image: "https://images.unsplash.com/photo-1603909075557-eb4e4aa0cfb6?w=500&auto=format&fit=crop",
+    mediaUrl: "https://images.unsplash.com/photo-1603909075557-eb4e4aa0cfb6?w=500&auto=format&fit=crop",
+    mediaType: "image",
+    description: "Une variété classique d'Amsterdam avec des arômes terreux et des effets équilibrés",
+    prices: [
+      { weight: "1g", price: 12 },
+      { weight: "5g", price: 55 },
+      { weight: "10g", price: 100 }
+    ]
+  },
+  {
+    id: 2,
+    name: "Cali spain",
+    variety: "Strain Ranger",
+    farm: "Espagne",
+    image: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
+    mediaUrl: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
+    mediaType: "image",
+    description: "Variété premium d'Espagne avec des arômes fruités et sucrés",
+    prices: [
+      { weight: "1g", price: 15 },
+      { weight: "5g", price: 70 },
+      { weight: "10g", price: 130 }
+    ]
+  },
+  {
+    id: 3,
+    name: "Purple Haze",
+    variety: "Sativa Dominant",
+    farm: "California",
+    image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=500&auto=format&fit=crop",
+    mediaUrl: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=500&auto=format&fit=crop",
+    mediaType: "video",
+    description: "Une sativa légendaire de Californie aux effets énergisants",
+    prices: [
+      { weight: "1g", price: 14 },
+      { weight: "5g", price: 65 },
+      { weight: "10g", price: 120 }
+    ]
+  },
+];
+
+const categories = ["Toutes les catégories", "Weed", "Hash", "Mash"];
 
 const Home = () => {
-  const { cartItems, addToCart } = useCart();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>(["Toutes les catégories"]);
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
   
   // Mock Telegram username
   const telegramUsername = "Benichou";
 
-  // Load products, categories and settings
+  // Load welcome message from localStorage
   useEffect(() => {
-    loadData();
-  }, [selectedCategory]);
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      
-      // Load settings
-      const settings = await settingsApi.getAll();
-      const welcomeMsg = settings.find((s: any) => s.key === 'welcome_message')?.value || "Bienvenue sur l'app RSLiv";
-      setWelcomeMessage(welcomeMsg);
-      
-      // Load categories
-      const categoriesData = await categoriesApi.getAll();
-      setCategories(["Toutes les catégories", ...categoriesData.map((c: any) => c.name)]);
-      
-      // Load products
-      const categoryFilter = selectedCategory === "Toutes les catégories" ? undefined : selectedCategory;
-      const productsData = await productsApi.getAll(categoryFilter);
-      
-      // Transform products to match component interface
-      const transformedProducts = productsData.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        variety: p.variety || "",
-        farm: p.farm || "",
-        image: p.image_url ? `/uploads${p.image_url}` : "/placeholder.svg",
-        mediaUrl: (p.video_url || p.image_url) ? `/uploads${p.video_url || p.image_url}` : "/placeholder.svg",
-        mediaType: p.video_url ? "video" : "image",
-        description: p.description || "",
-        prices: p.prices || []
-      }));
-      
-      setProducts(transformedProducts);
-    } catch (error: any) {
-      console.error("Error loading data:", error);
-      toast.error("Erreur lors du chargement des données");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    const message = localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋";
+    setWelcomeMessage(message);
+  }, []);
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -95,14 +100,8 @@ const Home = () => {
   };
 
   const handleAddToCart = (product: Product, selectedPrice: ProductPrice, quantity: number) => {
-    addToCart({
-      id: product.id,
-      name: product.name,
-      weight: selectedPrice.weight,
-      quantity,
-      price: selectedPrice.price,
-      image: product.image
-    });
+    console.log("Ajout au panier:", { product, selectedPrice, quantity });
+    // TODO: Implémenter la vraie logique d'ajout au panier
   };
 
   return (
@@ -142,17 +141,9 @@ const Home = () => {
         </Select>
       </div>
 
-      {/* Products grid */}
+      {/* Products grid - Prix masqués */}
       <div className="px-4 grid grid-cols-2 gap-4 relative z-10">
-        {isLoading ? (
-          <div className="col-span-2 text-center py-8 text-muted-foreground">
-            Chargement des produits...
-          </div>
-        ) : products.length === 0 ? (
-          <div className="col-span-2 text-center py-8 text-muted-foreground">
-            Aucun produit disponible
-          </div>
-        ) : products.map((product, index) => (
+        {products.map((product, index) => (
           <div
             key={product.id}
             className="card-shop cursor-pointer hover:scale-[1.03] transition-all duration-300"
@@ -201,11 +192,9 @@ const Home = () => {
           >
             <ShoppingCart className="w-6 h-6" />
             <span className="text-xs font-medium">Panier</span>
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
-                {cartItems.length}
-              </span>
-            )}
+            <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
+              1
+            </span>
           </Link>
         </div>
       </nav>
