@@ -99,7 +99,7 @@ echo "[3/9] Installing application dependencies..."
 cd "$APP_DIR"
 
 # Install production dependencies
-npm ci --production=false
+npm install --production=false
 
 echo "✓ Dependencies installed"
 
