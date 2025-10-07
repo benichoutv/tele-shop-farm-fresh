@@ -1,7 +1,12 @@
 import { useState } from "react";
-import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck, Send } from "lucide-react";
+import { Home, Info as InfoIcon, ShoppingCart, Clock, MessageCircle, Truck } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "@/assets/logo.png";
+import telegramLogo from "@/assets/telegram-logo.png";
+import whatsappLogo from "@/assets/whatsapp-logo.png";
+import signalLogo from "@/assets/signal-logo.png";
+import snapchatLogo from "@/assets/snapchat-logo.png";
+import potatoLogo from "@/assets/potato-logo.png";
 
 interface SocialNetwork {
   id: string;
@@ -9,6 +14,17 @@ interface SocialNetwork {
   username: string;
   url: string;
 }
+
+// Map social network names to their logos
+const getSocialLogo = (name: string) => {
+  const lowerName = name.toLowerCase();
+  if (lowerName.includes('telegram')) return telegramLogo;
+  if (lowerName.includes('whatsapp')) return whatsappLogo;
+  if (lowerName.includes('signal')) return signalLogo;
+  if (lowerName.includes('snapchat') || lowerName.includes('snap')) return snapchatLogo;
+  if (lowerName.includes('potato')) return potatoLogo;
+  return null;
+};
 
 // Récupération des paramètres depuis localStorage
 const getSettings = () => {
@@ -124,8 +140,8 @@ const InfoPage = () => {
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#0088cc]/20 to-[#0088cc]/10 border border-[#0088cc]/30 hover:border-[#0088cc] transition-all hover:scale-[1.02]"
             >
-              <div className="w-10 h-10 rounded-full bg-[#0088cc] flex items-center justify-center">
-                <Send className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img src={telegramLogo} alt="Telegram" className="w-full h-full object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Telegram</p>
@@ -139,8 +155,8 @@ const InfoPage = () => {
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#25D366]/20 to-[#25D366]/10 border border-[#25D366]/30 hover:border-[#25D366] transition-all hover:scale-[1.02]"
             >
-              <div className="w-10 h-10 rounded-full bg-[#25D366] flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img src={whatsappLogo} alt="WhatsApp" className="w-full h-full object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">WhatsApp</p>
@@ -154,8 +170,8 @@ const InfoPage = () => {
               rel="noopener noreferrer"
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#3a76f0]/20 to-[#3a76f0]/10 border border-[#3a76f0]/30 hover:border-[#3a76f0] transition-all hover:scale-[1.02]"
             >
-              <div className="w-10 h-10 rounded-full bg-[#3a76f0] flex items-center justify-center">
-                <Send className="w-5 h-5 text-white" />
+              <div className="w-12 h-12 flex items-center justify-center">
+                <img src={signalLogo} alt="Signal" className="w-full h-full object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Signal</p>
@@ -171,23 +187,32 @@ const InfoPage = () => {
             <h2 className="text-xl font-bold text-foreground mb-4">Nos Réseaux</h2>
 
             <div className="space-y-3">
-              {settings.socialNetworks.map((social) => (
-                <a
-                  key={social.id}
-                  href={social.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
-                >
-                  <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-[hsl(var(--accent))]" />
-                  </div>
-                  <div>
-                    <p className="font-semibold text-[hsl(var(--primary))]">{social.name}</p>
-                    <p className="text-sm text-[hsl(var(--primary))]/80">{social.username}</p>
-                  </div>
-                </a>
-              ))}
+              {settings.socialNetworks.map((social) => {
+                const socialLogo = getSocialLogo(social.name);
+                return (
+                  <a
+                    key={social.id}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
+                  >
+                    <div className="w-12 h-12 flex items-center justify-center">
+                      {socialLogo ? (
+                        <img src={socialLogo} alt={social.name} className="w-full h-full object-contain" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
+                          <MessageCircle className="w-5 h-5 text-[hsl(var(--accent))]" />
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-[hsl(var(--primary))]">{social.name}</p>
+                      <p className="text-sm text-[hsl(var(--primary))]/80">{social.username}</p>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
           </div>
         )}
