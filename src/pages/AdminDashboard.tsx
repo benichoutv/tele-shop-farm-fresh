@@ -121,17 +121,23 @@ export default function AdminDashboard() {
     category: "",
     farm: "",
     description: "",
-    mediaFile: null as File | null,
-    mediaType: "image" as "image" | "video",
+    imageFile: null as File | null,
+    videoFile: null as File | null,
     prices: [{ weight: "1g", price: 0 }]
   });
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
+    setFormData({ ...formData, imageFile: file, videoFile: null });
+    toast({ title: "Image sélectionnée" });
+  };
 
-    setFormData({ ...formData, mediaFile: file });
-    toast({ title: `${formData.mediaType === "image" ? "Image" : "Vidéo"} sélectionnée` });
+  const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setFormData({ ...formData, videoFile: file, imageFile: null });
+    toast({ title: "Vidéo sélectionnée" });
   };
 
   const handleLogout = () => {
@@ -146,8 +152,8 @@ export default function AdminDashboard() {
       category: "",
       farm: "",
       description: "",
-      mediaFile: null,
-      mediaType: "image",
+      imageFile: null,
+      videoFile: null,
       prices: [{ weight: "1g", price: 0 }]
     });
     setShowProductDialog(true);
@@ -160,8 +166,8 @@ export default function AdminDashboard() {
       category: product.category,
       farm: product.farm,
       description: product.description,
-      mediaFile: null, // Can't pre-populate file input
-      mediaType: product.mediaType,
+      imageFile: null,
+      videoFile: null,
       prices: product.prices
     });
     setShowProductDialog(true);
@@ -209,13 +215,12 @@ export default function AdminDashboard() {
       productFormData.append('description', formData.description);
       productFormData.append('prices', JSON.stringify(formData.prices));
 
-      // Add media file if selected
-      if (formData.mediaFile) {
-        if (formData.mediaType === 'image') {
-          productFormData.append('image', formData.mediaFile);
-        } else {
-          productFormData.append('video', formData.mediaFile);
-        }
+      // Add media files if selected
+      if (formData.imageFile) {
+        productFormData.append('image', formData.imageFile);
+      }
+      if (formData.videoFile) {
+        productFormData.append('video', formData.videoFile);
       }
       
       if (editingProduct) {
@@ -759,10 +764,7 @@ export default function AdminDashboard() {
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={(e) => {
-                      setFormData({ ...formData, mediaType: "image" });
-                      handleFileUpload(e);
-                    }}
+                    onChange={handleImageUpload}
                     className="hidden"
                     id="image-upload"
                   />
@@ -770,9 +772,15 @@ export default function AdminDashboard() {
                     htmlFor="image-upload"
                     className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
-                    {formData.mediaFile || (editingProduct && editingProduct.mediaType === "image") ? (
+                    {formData.imageFile ? (
                       <img
-                        src={formData.mediaFile ? URL.createObjectURL(formData.mediaFile) : editingProduct?.mediaUrl}
+                        src={URL.createObjectURL(formData.imageFile)}
+                        alt="Preview"
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    ) : (editingProduct && editingProduct.mediaType === "image") ? (
+                      <img
+                        src={editingProduct.mediaUrl}
                         alt="Preview"
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -783,7 +791,7 @@ export default function AdminDashboard() {
                           Cliquez pour uploader une image
                         </p>
                         <p className="text-muted-foreground/60 text-xs mt-1">
-                          Max 10 Mc • JPG, PNG, WebP
+                          Max 50 Mo • JPG, PNG, WebP
                         </p>
                       </>
                     )}
@@ -798,10 +806,7 @@ export default function AdminDashboard() {
                   <input
                     type="file"
                     accept="video/*"
-                    onChange={(e) => {
-                      setFormData({ ...formData, mediaType: "video" });
-                      handleFileUpload(e);
-                    }}
+                    onChange={handleVideoUpload}
                     className="hidden"
                     id="video-upload"
                   />
@@ -809,9 +814,15 @@ export default function AdminDashboard() {
                     htmlFor="video-upload"
                     className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
-                    {formData.mediaFile || (editingProduct && editingProduct.mediaType === "video") ? (
+                    {formData.videoFile ? (
                       <video
-                        src={formData.mediaFile ? URL.createObjectURL(formData.mediaFile) : editingProduct?.mediaUrl}
+                        src={URL.createObjectURL(formData.videoFile)}
+                        className="w-full h-full object-cover rounded-lg"
+                        controls
+                      />
+                    ) : (editingProduct && editingProduct.mediaType === "video") ? (
+                      <video
+                        src={editingProduct.mediaUrl}
                         className="w-full h-full object-cover rounded-lg"
                         controls
                       />
@@ -822,7 +833,7 @@ export default function AdminDashboard() {
                           Cliquez pour uploader une vidéo
                         </p>
                         <p className="text-muted-foreground/60 text-xs mt-1">
-                          Max 10 Mc • MP4, WebM
+                          Max 50 Mo • MP4, WebM
                         </p>
                       </>
                     )}
