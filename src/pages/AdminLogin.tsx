@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
+import { authApi } from "@/lib/api";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -11,16 +12,20 @@ const AdminLogin = () => {
     username: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
     
-    // Mock authentication - replace with real backend auth
-    if (credentials.username === "admin" && credentials.password === "admin123") {
+    try {
+      await authApi.login(credentials.username, credentials.password);
       toast.success("Connexion réussie");
       navigate("/admin/dashboard");
-    } else {
-      toast.error("Identifiants incorrects");
+    } catch (error: any) {
+      toast.error(error.message || "Identifiants incorrects");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -73,8 +78,8 @@ const AdminLogin = () => {
               />
             </div>
 
-            <Button type="submit" className="w-full btn-primary py-6 text-lg mt-6">
-              Se connecter
+            <Button type="submit" disabled={isLoading} className="w-full btn-primary py-6 text-lg mt-6">
+              {isLoading ? "Connexion..." : "Se connecter"}
             </Button>
           </form>
         </div>

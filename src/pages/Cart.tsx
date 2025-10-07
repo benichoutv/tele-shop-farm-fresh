@@ -4,19 +4,12 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { ordersApi } from "@/lib/api";
+import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 2,
-      name: "Cali spain",
-      weight: "5g",
-      quantity: 1,
-      price: 50,
-      image: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
-    },
-  ]);
+  const { cartItems, removeFromCart, clearCart, getCartTotal } = useCart();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -24,23 +17,42 @@ const Cart = () => {
     address: "",
   });
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const total = getCartTotal();
 
   const removeItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
+    removeFromCart(id);
     toast.success("Produit retiré du panier");
   };
 
-  const handleOrder = (e: React.FormEvent) => {
+  const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.phone || !formData.address) {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
     
-    // Here would be the Telegram API call
-    toast.success("Commande envoyée ! Vous recevrez une confirmation sur Telegram.");
-    console.log("Order:", { items: cartItems, customer: formData, total });
+    try {
+      const orderData = {
+        customer_name: formData.name,
+        customer_phone: formData.phone,
+        customer_address: formData.address,
+        items: cartItems.map(item => ({
+          product_id: item.id,
+          product_name: item.name,
+          weight: item.weight,
+          quantity: item.quantity,
+          price: item.price
+        })),
+        total
+      };
+
+      await ordersApi.create(orderData);
+      toast.success("Commande envoyée ! Vous recevrez une confirmation.");
+      clearCart();
+      setFormData({ name: "", phone: "", address: "" });
+    } catch (error: any) {
+      toast.error(error.message || "Erreur lors de l'envoi de la commande");
+    }
   };
 
   return (
