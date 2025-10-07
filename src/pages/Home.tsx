@@ -27,6 +27,7 @@ interface Product {
   farm: string;
   image: string;
   mediaUrl: string;
+  videoUrl?: string;
   mediaType: "image" | "video";
   description: string;
   prices: ProductPrice[];
@@ -71,6 +72,7 @@ const Home = () => {
           farm: p.farm || "",
           image: p.image_url || "",
           mediaUrl: p.video_url || p.image_url || "",
+          videoUrl: p.video_url || "",
           mediaType: (p.video_url ? "video" : "image") as "image" | "video",
           description: p.description || "",
           prices: p.prices || [],

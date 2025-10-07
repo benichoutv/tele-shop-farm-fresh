@@ -129,15 +129,15 @@ export default function AdminDashboard() {
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setFormData({ ...formData, imageFile: file, videoFile: null });
-    toast({ title: "Image sélectionnée" });
+    setFormData({ ...formData, imageFile: file });
+    toast({ title: "Photo sélectionnée pour la page d'accueil" });
   };
 
   const handleVideoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    setFormData({ ...formData, videoFile: file, imageFile: null });
-    toast({ title: "Vidéo sélectionnée" });
+    setFormData({ ...formData, videoFile: file });
+    toast({ title: "Vidéo sélectionnée (sera convertie en 480p)" });
   };
 
   const handleLogout = () => {
@@ -759,7 +759,10 @@ export default function AdminDashboard() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Image Upload */}
               <div className="space-y-2">
-                <Label className="text-foreground">Image du produit</Label>
+                <Label className="text-foreground">Photo (page d'accueil) *</Label>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Cette image sera affichée sur la page d'accueil
+                </p>
                 <div className="relative">
                   <input
                     type="file"
@@ -788,7 +791,7 @@ export default function AdminDashboard() {
                       <>
                         <Image className="w-12 h-12 text-accent/60 mb-2" />
                         <p className="text-muted-foreground text-sm text-center px-4">
-                          Cliquez pour uploader une image
+                          Cliquez pour uploader une photo
                         </p>
                         <p className="text-muted-foreground/60 text-xs mt-1">
                           Max 50 Mo • JPG, PNG, WebP
@@ -801,7 +804,10 @@ export default function AdminDashboard() {
 
               {/* Video Upload */}
               <div className="space-y-2">
-                <Label className="text-foreground">Vidéo du produit</Label>
+                <Label className="text-foreground">Vidéo (modale uniquement)</Label>
+                <p className="text-xs text-muted-foreground mb-1">
+                  Affichée dans la modale détail. Convertie auto en 480p (max 10-20 Mo)
+                </p>
                 <div className="relative">
                   <input
                     type="file"

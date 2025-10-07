@@ -17,6 +17,7 @@ interface Product {
   description: string;
   image: string;
   mediaUrl: string;
+  videoUrl?: string;
   mediaType: "image" | "video";
   prices: ProductPrice[];
 }
@@ -62,21 +63,21 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
         </button>
 
         <div className="grid md:grid-cols-2 gap-0 overflow-y-auto">
-          {/* Media Section */}
+          {/* Media Section - priorité à la vidéo si disponible */}
           <div className="relative bg-black/30 aspect-square md:aspect-auto flex-shrink-0">
-            {product.mediaType === "image" ? (
-              <img
-                src={product.mediaUrl}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            ) : (
+            {product.videoUrl ? (
               <video
-                src={product.mediaUrl}
+                src={product.videoUrl}
                 controls
                 autoPlay
                 loop
                 muted
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <img
+                src={product.image}
+                alt={product.name}
                 className="w-full h-full object-cover"
               />
             )}
