@@ -173,7 +173,7 @@ pm2 restart rsliv-app
 
 **Identifiants par défaut :**
 - Username: `admin`
-- Password: `admin123`
+- Password: `Admin123!`
 
 **⚠️ IMPORTANT :** Changez ces identifiants en production !
 
