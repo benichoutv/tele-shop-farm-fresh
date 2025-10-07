@@ -84,7 +84,7 @@ export default function AdminDashboard() {
           category: p.category_name || "",
           farm: p.farm || "",
           description: p.description || "",
-          mediaUrl: p.image_url || "",
+          mediaUrl: p.video_url || p.image_url || "",
           mediaType: (p.video_url ? "video" : "image") as "image" | "video",
           prices: p.prices || []
         }));
@@ -240,7 +240,7 @@ export default function AdminDashboard() {
           category: p.category_name || "",
           farm: p.farm || "",
           description: p.description || "",
-          mediaUrl: p.image_url || "",
+          mediaUrl: p.video_url || p.image_url || "",
           mediaType: (p.video_url ? "video" : "image") as "image" | "video",
           prices: p.prices || []
         }));
@@ -256,7 +256,7 @@ export default function AdminDashboard() {
           category: p.category_name || "",
           farm: p.farm || "",
           description: p.description || "",
-          mediaUrl: p.image_url || "",
+          mediaUrl: p.video_url || p.image_url || "",
           mediaType: (p.video_url ? "video" : "image") as "image" | "video",
           prices: p.prices || []
         }));

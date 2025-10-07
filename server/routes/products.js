@@ -104,16 +104,14 @@ router.post('/', authMiddleware, upload.fields([
     
     // Handle image upload
     if (req.files?.image) {
-      const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-      imageUrl = `${baseUrl}/uploads/${req.files.image[0].filename}`;
+      imageUrl = `/uploads/${req.files.image[0].filename}`;
     }
     
     // Handle video upload and conversion
     if (req.files?.video) {
       const videoFile = req.files.video[0];
       const convertedPath = await convertVideo(videoFile.path);
-      const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-      videoUrl = `${baseUrl}/uploads/${path.basename(convertedPath)}`;
+      videoUrl = `/uploads/${path.basename(convertedPath)}`;
     }
     
     const result = await db.run(
@@ -162,16 +160,14 @@ router.put('/:id', authMiddleware, upload.fields([
     
     // Handle new image upload
     if (req.files?.image) {
-      const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-      imageUrl = `${baseUrl}/uploads/${req.files.image[0].filename}`;
+      imageUrl = `/uploads/${req.files.image[0].filename}`;
     }
     
     // Handle new video upload
     if (req.files?.video) {
       const videoFile = req.files.video[0];
       const convertedPath = await convertVideo(videoFile.path);
-      const baseUrl = process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-      videoUrl = `${baseUrl}/uploads/${path.basename(convertedPath)}`;
+      videoUrl = `/uploads/${path.basename(convertedPath)}`;
     }
     
     await db.run(
