@@ -68,7 +68,7 @@ const Home = () => {
         const mappedProducts = productsData.map((p: any) => ({
           id: p.id,
           name: p.name,
-          variety: p.variety || "",
+          variety: p.variety || p.category_name || "",
           farm: p.farm || "",
           image: p.image_url || "",
           mediaUrl: p.video_url || p.image_url || "",

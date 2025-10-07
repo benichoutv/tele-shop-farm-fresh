@@ -101,13 +101,13 @@ All colors MUST be HSL.
   }
 
   .tag-yellow {
-    @apply bg-[hsl(var(--tag-yellow))] text-[hsl(var(--primary))] text-xs font-bold px-4 py-1.5 rounded-full shadow-lg;
+    @apply bg-[hsl(var(--tag-yellow))] text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-lg;
     animation: fadeIn 0.3s ease-out;
     box-shadow: 0 4px 14px hsl(var(--tag-yellow) / 0.4);
   }
 
   .tag-green {
-    @apply bg-[hsl(var(--tag-green))] text-[hsl(var(--primary))] text-xs font-bold px-4 py-1.5 rounded-full shadow-lg;
+    @apply bg-[hsl(var(--tag-green))] text-black text-xs font-bold px-4 py-1.5 rounded-full shadow-lg;
     animation: fadeIn 0.3s ease-out;
     box-shadow: 0 4px 14px hsl(var(--accent) / 0.4);
   }
