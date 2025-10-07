@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Edit, Trash2, Settings, LogOut, Video, Image, ArrowLeft, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
+import { productsApi, categoriesApi, settingsApi } from "@/lib/api";
 import logo from "@/assets/logo.png";
 
 interface ProductPrice {
@@ -50,49 +51,77 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<"products" | "settings">("products");
   const [showProductDialog, setShowProductDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  
-  // Mock data - remplacer par vraies données du backend
-  const [products, setProducts] = useState<Product[]>([
-    {
-      id: 1,
-      name: "Amnesia Haze",
-      category: "Sativa",
-      farm: "Green Valley Farm",
-      description: "Une variété sativa classique avec des arômes citronnés",
-      mediaUrl: "/placeholder.svg",
-      mediaType: "image",
-      prices: [
-        { weight: "1g", price: 12 },
-        { weight: "5g", price: 55 },
-        { weight: "10g", price: 100 }
-      ]
-    }
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const savedSocialNetworks = localStorage.getItem("socialNetworks");
-    return {
-      welcomeMessage: localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋",
-      telegramLink: localStorage.getItem("telegramLink") || "https://t.me/votre_compte",
-      whatsappLink: localStorage.getItem("whatsappLink") || "https://wa.me/33612345678",
-      signalLink: localStorage.getItem("signalLink") || "https://signal.me/#p/+33612345678",
-      orderHours: localStorage.getItem("orderHours") || "11h - 00h",
-      meetupStatus: localStorage.getItem("meetupStatus") || "Disponible",
-      deliveryZone: localStorage.getItem("deliveryZone") || "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
-      deliveryHours: localStorage.getItem("deliveryHours") || "11h - 00h",
-      socialNetworks: savedSocialNetworks ? JSON.parse(savedSocialNetworks) : [
-        { id: "1", name: "Telegram", username: "@RSliv", url: "https://t.me/RSliv" },
-        { id: "2", name: "Snapchat", username: "rsliv", url: "https://snapchat.com/add/rsliv" }
-      ]
-    };
+  const [settings, setSettings] = useState<AppSettings>({
+    welcomeMessage: "Bienvenue sur l'app RSlive 👋",
+    telegramLink: "https://t.me/votre_compte",
+    whatsappLink: "https://wa.me/33612345678",
+    signalLink: "https://signal.me/#p/+33612345678",
+    orderHours: "11h - 00h",
+    meetupStatus: "Disponible",
+    deliveryZone: "Gard Vaucluse Bouches-du-Rhône Ardèche Drôme Hérault",
+    deliveryHours: "11h - 00h",
+    socialNetworks: [
+      { id: "1", name: "Telegram", username: "@RSliv", url: "https://t.me/RSliv" },
+      { id: "2", name: "Snapchat", username: "rsliv", url: "https://snapchat.com/add/rsliv" }
+    ]
   });
+
+  // Load data from API on mount
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load products
+        const productsData = await productsApi.getAll();
+        const mappedProducts = productsData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category_name || "",
+          farm: p.farm || "",
+          description: p.description || "",
+          mediaUrl: p.image_url || "",
+          mediaType: (p.video_url ? "video" : "image") as "image" | "video",
+          prices: p.prices || []
+        }));
+        setProducts(mappedProducts);
+
+        // Load categories
+        const categoriesData = await categoriesApi.getAll();
+        setCategories(categoriesData.map((c: any) => c.name));
+
+        // Load settings
+        const settingsData = await settingsApi.getAll();
+        setSettings(prev => ({
+          ...prev,
+          welcomeMessage: settingsData.welcome_message || prev.welcomeMessage,
+          telegramLink: settingsData.telegram_contact || prev.telegramLink,
+        }));
+      } catch (error) {
+        console.error("Erreur chargement données:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les données",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   const [formData, setFormData] = useState({
     name: "",
     category: "",
     farm: "",
     description: "",
-    mediaUrl: "",
+    mediaFile: null as File | null,
     mediaType: "image" as "image" | "video",
     prices: [{ weight: "1g", price: 0 }]
   });
@@ -101,12 +130,8 @@ export default function AdminDashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData({ ...formData, mediaUrl: reader.result as string });
-      toast({ title: `${formData.mediaType === "image" ? "Image" : "Vidéo"} chargée avec succès` });
-    };
-    reader.readAsDataURL(file);
+    setFormData({ ...formData, mediaFile: file });
+    toast({ title: `${formData.mediaType === "image" ? "Image" : "Vidéo"} sélectionnée` });
   };
 
   const handleLogout = () => {
@@ -121,7 +146,7 @@ export default function AdminDashboard() {
       category: "",
       farm: "",
       description: "",
-      mediaUrl: "",
+      mediaFile: null,
       mediaType: "image",
       prices: [{ weight: "1g", price: 0 }]
     });
@@ -135,43 +160,107 @@ export default function AdminDashboard() {
       category: product.category,
       farm: product.farm,
       description: product.description,
-      mediaUrl: product.mediaUrl,
+      mediaFile: null, // Can't pre-populate file input
       mediaType: product.mediaType,
       prices: product.prices
     });
     setShowProductDialog(true);
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = async (id: number) => {
     if (confirm("Êtes-vous sûr de vouloir supprimer ce produit ?")) {
-      setProducts(products.filter(p => p.id !== id));
-      toast({ title: "Produit supprimé avec succès" });
+      try {
+        await productsApi.delete(id);
+        setProducts(products.filter(p => p.id !== id));
+        toast({ title: "Produit supprimé avec succès" });
+      } catch (error) {
+        console.error("Erreur suppression:", error);
+        toast({ 
+          title: "Erreur", 
+          description: "Impossible de supprimer le produit",
+          variant: "destructive" 
+        });
+      }
     }
   };
 
-  const handleSaveProduct = () => {
+  const handleSaveProduct = async () => {
     if (!formData.name || !formData.category || !formData.farm) {
       toast({ title: "Veuillez remplir tous les champs obligatoires", variant: "destructive" });
       return;
     }
 
-    if (editingProduct) {
-      setProducts(products.map(p => 
-        p.id === editingProduct.id 
-          ? { ...editingProduct, ...formData }
-          : p
-      ));
-      toast({ title: "Produit modifié avec succès" });
-    } else {
-      const newProduct: Product = {
-        id: Math.max(...products.map(p => p.id), 0) + 1,
-        ...formData
-      };
-      setProducts([...products, newProduct]);
-      toast({ title: "Produit ajouté avec succès" });
+    try {
+      // Find or create category
+      const categoriesData = await categoriesApi.getAll();
+      let categoryId = categoriesData.find((c: any) => c.name === formData.category)?.id;
+      
+      if (!categoryId) {
+        const newCategory = await categoriesApi.create(formData.category);
+        categoryId = newCategory.id;
+      }
+
+      // Create FormData for product
+      const productFormData = new FormData();
+      productFormData.append('name', formData.name);
+      productFormData.append('variety', formData.category);
+      productFormData.append('category_id', String(categoryId));
+      productFormData.append('farm', formData.farm);
+      productFormData.append('description', formData.description);
+      productFormData.append('prices', JSON.stringify(formData.prices));
+
+      // Add media file if selected
+      if (formData.mediaFile) {
+        if (formData.mediaType === 'image') {
+          productFormData.append('image', formData.mediaFile);
+        } else {
+          productFormData.append('video', formData.mediaFile);
+        }
+      }
+      
+      if (editingProduct) {
+        await productsApi.update(editingProduct.id, productFormData);
+        // Reload products to get fresh data
+        const updatedProducts = await productsApi.getAll();
+        const mappedProducts = updatedProducts.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category_name || "",
+          farm: p.farm || "",
+          description: p.description || "",
+          mediaUrl: p.image_url || "",
+          mediaType: (p.video_url ? "video" : "image") as "image" | "video",
+          prices: p.prices || []
+        }));
+        setProducts(mappedProducts);
+        toast({ title: "Produit modifié avec succès" });
+      } else {
+        await productsApi.create(productFormData);
+        // Reload products to get fresh data
+        const updatedProducts = await productsApi.getAll();
+        const mappedProducts = updatedProducts.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          category: p.category_name || "",
+          farm: p.farm || "",
+          description: p.description || "",
+          mediaUrl: p.image_url || "",
+          mediaType: (p.video_url ? "video" : "image") as "image" | "video",
+          prices: p.prices || []
+        }));
+        setProducts(mappedProducts);
+        toast({ title: "Produit ajouté avec succès" });
+      }
+      
+      setShowProductDialog(false);
+    } catch (error) {
+      console.error("Erreur sauvegarde:", error);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de sauvegarder le produit",
+        variant: "destructive" 
+      });
     }
-    
-    setShowProductDialog(false);
   };
 
   const handleAddPrice = () => {
@@ -223,17 +312,31 @@ export default function AdminDashboard() {
     });
   };
 
-  const handleSaveSettings = () => {
-    localStorage.setItem("welcomeMessage", settings.welcomeMessage);
-    localStorage.setItem("telegramLink", settings.telegramLink);
-    localStorage.setItem("whatsappLink", settings.whatsappLink);
-    localStorage.setItem("signalLink", settings.signalLink);
-    localStorage.setItem("orderHours", settings.orderHours);
-    localStorage.setItem("meetupStatus", settings.meetupStatus);
-    localStorage.setItem("deliveryZone", settings.deliveryZone);
-    localStorage.setItem("deliveryHours", settings.deliveryHours);
-    localStorage.setItem("socialNetworks", JSON.stringify(settings.socialNetworks));
-    toast({ title: "Paramètres sauvegardés avec succès" });
+  const handleSaveSettings = async () => {
+    try {
+      await settingsApi.update({
+        welcome_message: settings.welcomeMessage,
+        telegram_contact: settings.telegramLink,
+      });
+      
+      // Save other settings to localStorage (not yet in API)
+      localStorage.setItem("whatsappLink", settings.whatsappLink);
+      localStorage.setItem("signalLink", settings.signalLink);
+      localStorage.setItem("orderHours", settings.orderHours);
+      localStorage.setItem("meetupStatus", settings.meetupStatus);
+      localStorage.setItem("deliveryZone", settings.deliveryZone);
+      localStorage.setItem("deliveryHours", settings.deliveryHours);
+      localStorage.setItem("socialNetworks", JSON.stringify(settings.socialNetworks));
+      
+      toast({ title: "Paramètres sauvegardés avec succès" });
+    } catch (error) {
+      console.error("Erreur sauvegarde:", error);
+      toast({ 
+        title: "Erreur", 
+        description: "Impossible de sauvegarder les paramètres",
+        variant: "destructive" 
+      });
+    }
   };
 
   const handleExitAdmin = () => {
@@ -667,9 +770,9 @@ export default function AdminDashboard() {
                     htmlFor="image-upload"
                     className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
-                    {formData.mediaUrl && formData.mediaType === "image" ? (
+                    {formData.mediaFile || (editingProduct && editingProduct.mediaType === "image") ? (
                       <img
-                        src={formData.mediaUrl}
+                        src={formData.mediaFile ? URL.createObjectURL(formData.mediaFile) : editingProduct?.mediaUrl}
                         alt="Preview"
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -706,9 +809,9 @@ export default function AdminDashboard() {
                     htmlFor="video-upload"
                     className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
                   >
-                    {formData.mediaUrl && formData.mediaType === "video" ? (
+                    {formData.mediaFile || (editingProduct && editingProduct.mediaType === "video") ? (
                       <video
-                        src={formData.mediaUrl}
+                        src={formData.mediaFile ? URL.createObjectURL(formData.mediaFile) : editingProduct?.mediaUrl}
                         className="w-full h-full object-cover rounded-lg"
                         controls
                       />
