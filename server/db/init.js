@@ -1,3 +1,4 @@
+import bcrypt from 'bcrypt';
 import { getDb } from './connection.js';
 
 export async function initDatabase() {
@@ -78,11 +79,18 @@ export async function initDatabase() {
       ('instagram_url', ''),
       ('tiktok_url', '');
 
-    -- Insert default admin user (username: admin, password: admin123)
-    -- Password hash for 'admin123' using bcrypt
-    INSERT OR IGNORE INTO admin_users (username, password_hash) VALUES 
-      ('admin', '$2b$10$rKvVPpZ7nN3qZ9J8YqK4eO9Y4xK7qJ5xZ7qJ5xZ7qJ5xZ7qJ5xZ7q');
   `);
+  // Ensure default admin user exists with a valid bcrypt hash
+  const admin = await db.get('SELECT id, password_hash FROM admin_users WHERE username = ?', ['admin']);
+  if (!admin) {
+    const hash = await bcrypt.hash('Admin123!', 10);
+    await db.run('INSERT INTO admin_users (username, password_hash) VALUES (?, ?)', ['admin', hash]);
+    console.log('Seeded default admin user with password: Admin123!');
+  } else if (typeof admin.password_hash !== 'string' || admin.password_hash.length !== 60 || !admin.password_hash.startsWith('$2')) {
+    const hash = await bcrypt.hash('Admin123!', 10);
+    await db.run('UPDATE admin_users SET password_hash = ? WHERE id = ?', [hash, admin.id]);
+    console.log('Fixed invalid admin password hash.');
+  }
 
   console.log('Database initialized successfully');
 }
