@@ -1,73 +1,184 @@
-# Welcome to your Lovable project
+# RSLiv - E-commerce Platform
 
-## Project info
+Application e-commerce complète avec backend Node.js/Express, base de données SQLite/PostgreSQL, et notifications Telegram.
 
-**URL**: https://lovable.dev/projects/887601b2-0bd0-470a-af60-067158a517e6
+## 🚀 Fonctionnalités
 
-## How can I edit this code?
+### Frontend (React + Vite)
+- Catalogue de produits avec filtres par catégorie
+- Fiche produit détaillée avec galerie média
+- Panier d'achat dynamique
+- Formulaire de commande
+- Interface responsive et moderne
+- Message de bienvenue personnalisé avec contact Telegram
 
-There are several ways of editing your application.
+### Backend (Node.js + Express)
+- API REST complète
+- Gestion des produits (CRUD)
+- Gestion des catégories
+- Gestion des commandes
+- Upload d'images et vidéos
+- Conversion automatique des vidéos en 480p (FFmpeg)
+- Notifications Telegram automatiques pour chaque commande
+- Authentification admin (JWT)
 
-**Use Lovable**
+### Panel Admin
+- Interface mobile-first
+- CRUD produits avec upload média
+- Gestion des catégories
+- Options de prix multiples par produit
+- Gestion des commandes
+- Configuration des paramètres (nom du site, message de bienvenue, etc.)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/887601b2-0bd0-470a-af60-067158a517e6) and start prompting.
+## 📋 Technologies
 
-Changes made via Lovable will be committed automatically to this repo.
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn-ui
+- **Backend**: Node.js, Express
+- **Base de données**: SQLite (par défaut) ou PostgreSQL
+- **Authentification**: JWT, bcrypt
+- **Médias**: Multer, FFmpeg
+- **Notifications**: Telegram Bot API
 
-**Use your preferred IDE**
+## 🔧 Développement Local
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Prérequis
+- Node.js 18+ 
+- npm ou yarn
+- FFmpeg (pour la conversion vidéo)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+```bash
+# Cloner le repository
+git clone <votre-repo-url>
+cd rsliv
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Installer les dépendances
+npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Créer le fichier .env
+cp .env.example .env
+# Éditer .env avec vos configurations
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Créer le dossier uploads
+mkdir -p uploads
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Démarrer le serveur de développement
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+Le frontend sera accessible sur `http://localhost:5173` et le backend sur `http://localhost:3000`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🚀 Déploiement sur VPS
 
-**Use GitHub Codespaces**
+### Déploiement Automatique
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Pour un déploiement complet et automatisé sur Ubuntu 22.04, consultez:
 
-## What technologies are used for this project?
+📖 **[DEPLOY_VPS.md](./DEPLOY_VPS.md)** - Guide de déploiement détaillé  
+📖 **[DEPLOY_GUIDE.md](./DEPLOY_GUIDE.md)** - Guide complet avec architecture  
+✅ **[DEPLOYMENT_CHECKLIST.md](./DEPLOYMENT_CHECKLIST.md)** - Checklist de vérification
 
-This project is built with:
+### Script de déploiement rapide
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+# Sur votre VPS Ubuntu 22.04
+cd /var/www
+sudo git clone <votre-repo-url> rsliv
+cd rsliv
+sudo chmod +x deploy.sh
+sudo ./deploy.sh votre-domaine.com votre-email@example.com
+```
 
-## How can I deploy this project?
+Le script `deploy.sh` installe automatiquement:
+- Node.js 18+
+- PM2 (gestionnaire de processus)
+- FFmpeg
+- Nginx (serveur web + proxy)
+- Certificat SSL (Let's Encrypt)
 
-Simply open [Lovable](https://lovable.dev/projects/887601b2-0bd0-470a-af60-067158a517e6) and click on Share -> Publish.
+### Configuration Post-Déploiement
 
-## Can I connect a custom domain to my Lovable project?
+1. **Token Telegram Bot**
+   ```bash
+   nano /var/www/rsliv/.env
+   # Ajouter: TELEGRAM_BOT_TOKEN=votre_token
+   pm2 restart rsliv-app
+   ```
 
-Yes, you can!
+2. **Changer le mot de passe admin**
+   ```bash
+   cd /var/www/rsliv
+   node server/reset-admin.js
+   ```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+### Mises à jour
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+```bash
+cd /var/www/rsliv
+git pull origin main
+npm install  # si nouvelles dépendances
+npm run build
+pm2 restart rsliv-app
+```
+
+## 🔐 Accès Admin
+
+**Identifiants par défaut:**
+- Username: `admin`
+- Password: `Admin123!`
+
+⚠️ **Changez ces identifiants en production!**
+
+Accédez au panel admin sur: `https://votre-domaine.com/admin/login`
+
+## 📱 Configuration Telegram
+
+1. Cherchez **@BotFather** sur Telegram
+2. Envoyez `/newbot` et suivez les instructions
+3. Copiez le token fourni dans `.env`:
+   ```env
+   TELEGRAM_BOT_TOKEN=123456789:ABCdef...
+   TELEGRAM_ADMIN_CONTACT=@votre_username
+   ```
+
+## 🛠️ Commandes Utiles
+
+```bash
+# Voir les logs
+pm2 logs rsliv-app
+
+# Redémarrer
+pm2 restart rsliv-app
+
+# Arrêter
+pm2 stop rsliv-app
+
+# Voir le statut
+pm2 status
+
+# Monitorer
+pm2 monit
+```
+
+## 📝 Variables d'Environnement
+
+Voir [.env.example](./.env.example) pour la liste complète des variables.
+
+Variables essentielles:
+- `NODE_ENV=production`
+- `PORT=3000`
+- `APP_BASE_URL=https://votre-domaine.com`
+- `JWT_SECRET=changez-moi-en-production`
+- `TELEGRAM_BOT_TOKEN=votre_token`
+- `UPLOAD_DIR=/var/www/rsliv/uploads`
+
+## 🤝 Développement avec Lovable
+
+Ce projet peut être édité via [Lovable](https://lovable.dev/projects/887601b2-0bd0-470a-af60-067158a517e6).
+
+Les changements faits dans Lovable sont automatiquement synchronisés avec GitHub.
+
+## 📄 Licence
+
+Projet privé - Tous droits réservés
