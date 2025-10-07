@@ -1,6 +1,11 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('CRITICAL: JWT_SECRET is not set in environment variables!');
+  process.exit(1);
+}
 
 export function authMiddleware(req, res, next) {
   try {

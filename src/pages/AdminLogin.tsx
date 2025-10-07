@@ -5,6 +5,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
 import { authApi } from "@/lib/api";
+import { z } from "zod";
+
+const loginSchema = z.object({
+  username: z.string().trim().min(1, 'Le nom d\'utilisateur est requis').max(50),
+  password: z.string().min(1, 'Le mot de passe est requis').max(100)
+});
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -16,11 +22,21 @@ const AdminLogin = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await authApi.login(credentials.username.trim(), credentials.password);
+      // Validate inputs
+      const validated = loginSchema.parse({ 
+        username: credentials.username, 
+        password: credentials.password 
+      });
+      
+      await authApi.login(validated.username.trim(), validated.password);
       toast.success("Connexion réussie");
       navigate("/admin/dashboard");
     } catch (err: any) {
-      toast.error(err?.message || "Identifiants incorrects");
+      if (err instanceof z.ZodError) {
+        toast.error(err.errors[0].message);
+      } else {
+        toast.error(err?.message || "Identifiants incorrects");
+      }
     }
   };
   return (

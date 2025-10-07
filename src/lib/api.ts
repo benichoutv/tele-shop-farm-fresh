@@ -1,7 +1,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
-// Simple in-editor demo mode so admin works in the preview without a backend
-const DEMO_MODE = typeof window !== 'undefined' && window.location.protocol === 'https:'; // Lovable preview runs on HTTPS and cannot call HTTP APIs
+// Demo mode disabled for production deployment
+const DEMO_MODE = false;
 
 type DemoProduct = {
   id: number;

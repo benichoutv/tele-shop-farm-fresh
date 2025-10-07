@@ -4,7 +4,12 @@ import jwt from 'jsonwebtoken';
 import { getDb } from '../db/connection.js';
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error('CRITICAL: JWT_SECRET is not set in environment variables!');
+  process.exit(1);
+}
 
 // Login
 router.post('/login', async (req, res) => {
@@ -12,8 +17,17 @@ router.post('/login', async (req, res) => {
     const db = await getDb();
     const { username, password } = req.body;
     
+    // Input validation
     if (!username || !password) {
       return res.status(400).json({ error: 'Username et password requis' });
+    }
+    
+    if (typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Format invalide' });
+    }
+    
+    if (username.length > 50 || password.length > 100) {
+      return res.status(400).json({ error: 'Données trop longues' });
     }
     
     const user = await db.get('SELECT * FROM admin_users WHERE username = ?', [username]);

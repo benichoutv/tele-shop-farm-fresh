@@ -100,6 +100,13 @@ export default function AdminDashboard() {
           ...prev,
           welcomeMessage: settingsData.welcome_message || prev.welcomeMessage,
           telegramLink: settingsData.telegram_contact || prev.telegramLink,
+          whatsappLink: settingsData.whatsapp_link || prev.whatsappLink,
+          signalLink: settingsData.signal_link || prev.signalLink,
+          orderHours: settingsData.order_hours || prev.orderHours,
+          meetupStatus: settingsData.meetup_status || prev.meetupStatus,
+          deliveryZone: settingsData.delivery_zone || prev.deliveryZone,
+          deliveryHours: settingsData.delivery_hours || prev.deliveryHours,
+          socialNetworks: settingsData.social_networks ? JSON.parse(settingsData.social_networks) : prev.socialNetworks
         }));
       } catch (error) {
         console.error("Erreur chargement données:", error);
@@ -319,19 +326,18 @@ export default function AdminDashboard() {
 
   const handleSaveSettings = async () => {
     try {
+      // Save all settings to API
       await settingsApi.update({
         welcome_message: settings.welcomeMessage,
         telegram_contact: settings.telegramLink,
+        whatsapp_link: settings.whatsappLink,
+        signal_link: settings.signalLink,
+        order_hours: settings.orderHours,
+        meetup_status: settings.meetupStatus,
+        delivery_zone: settings.deliveryZone,
+        delivery_hours: settings.deliveryHours,
+        social_networks: JSON.stringify(settings.socialNetworks)
       });
-      
-      // Save other settings to localStorage (not yet in API)
-      localStorage.setItem("whatsappLink", settings.whatsappLink);
-      localStorage.setItem("signalLink", settings.signalLink);
-      localStorage.setItem("orderHours", settings.orderHours);
-      localStorage.setItem("meetupStatus", settings.meetupStatus);
-      localStorage.setItem("deliveryZone", settings.deliveryZone);
-      localStorage.setItem("deliveryHours", settings.deliveryHours);
-      localStorage.setItem("socialNetworks", JSON.stringify(settings.socialNetworks));
       
       toast({ title: "Paramètres sauvegardés avec succès" });
     } catch (error) {
