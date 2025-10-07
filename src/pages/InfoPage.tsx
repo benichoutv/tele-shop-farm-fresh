@@ -7,7 +7,7 @@ import whatsappLogo from "@/assets/whatsapp-logo.png";
 import signalLogo from "@/assets/signal-logo.png";
 import snapchatLogo from "@/assets/snapchat-logo.png";
 import potatoLogo from "@/assets/potato-logo.png";
-import instagramLogo from "@/assets/instagram-logo.webp";
+import instagramLogo from "@/assets/instagram-logo.png";
 
 interface SocialNetwork {
   id: string;
