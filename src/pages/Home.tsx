@@ -3,6 +3,8 @@ import { Home as HomeIcon, Info, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import ProductModal from "@/components/ProductModal";
+import { productsApi, categoriesApi, settingsApi } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
@@ -12,6 +14,7 @@ import {
 } from "@/components/ui/select";
 
 interface ProductPrice {
+  id?: number;
   weight: string;
   price: number;
 }
@@ -26,73 +29,67 @@ interface Product {
   mediaType: "image" | "video";
   description: string;
   prices: ProductPrice[];
+  category_name?: string;
 }
-
-// Mock data
-const products: Product[] = [
-  {
-    id: 1,
-    name: "amnesia OG",
-    variety: "Original amnesia",
-    farm: "Holland",
-    image: "https://images.unsplash.com/photo-1603909075557-eb4e4aa0cfb6?w=500&auto=format&fit=crop",
-    mediaUrl: "https://images.unsplash.com/photo-1603909075557-eb4e4aa0cfb6?w=500&auto=format&fit=crop",
-    mediaType: "image",
-    description: "Une variété classique d'Amsterdam avec des arômes terreux et des effets équilibrés",
-    prices: [
-      { weight: "1g", price: 12 },
-      { weight: "5g", price: 55 },
-      { weight: "10g", price: 100 }
-    ]
-  },
-  {
-    id: 2,
-    name: "Cali spain",
-    variety: "Strain Ranger",
-    farm: "Espagne",
-    image: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
-    mediaUrl: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
-    mediaType: "image",
-    description: "Variété premium d'Espagne avec des arômes fruités et sucrés",
-    prices: [
-      { weight: "1g", price: 15 },
-      { weight: "5g", price: 70 },
-      { weight: "10g", price: 130 }
-    ]
-  },
-  {
-    id: 3,
-    name: "Purple Haze",
-    variety: "Sativa Dominant",
-    farm: "California",
-    image: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=500&auto=format&fit=crop",
-    mediaUrl: "https://images.unsplash.com/photo-1605281317010-fe5ffe798166?w=500&auto=format&fit=crop",
-    mediaType: "video",
-    description: "Une sativa légendaire de Californie aux effets énergisants",
-    prices: [
-      { weight: "1g", price: 14 },
-      { weight: "5g", price: 65 },
-      { weight: "10g", price: 120 }
-    ]
-  },
-];
-
-const categories = ["Toutes les catégories", "Weed", "Hash", "Mash"];
 
 const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState("Toutes les catégories");
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState("");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<string[]>(["Toutes les catégories"]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
   
-  // Mock Telegram username
   const telegramUsername = "Benichou";
 
-  // Load welcome message from localStorage
+  // Load data from API
   useEffect(() => {
-    const message = localStorage.getItem("welcomeMessage") || "Bienvenue sur l'app RSlive 👋";
-    setWelcomeMessage(message);
-  }, []);
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Load settings
+        const settings = await settingsApi.getAll();
+        setWelcomeMessage(settings.welcome_message || "Bienvenue sur l'app RSlive 👋");
+
+        // Load categories
+        const categoriesData = await categoriesApi.getAll();
+        setCategories(["Toutes les catégories", ...categoriesData.map((c: any) => c.name)]);
+
+        // Load products
+        const productsData = await productsApi.getAll();
+        
+        // Map API data to frontend format
+        const mappedProducts = productsData.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          variety: p.variety || "",
+          farm: p.farm || "",
+          image: p.image_url || "",
+          mediaUrl: p.video_url || p.image_url || "",
+          mediaType: (p.video_url ? "video" : "image") as "image" | "video",
+          description: p.description || "",
+          prices: p.prices || [],
+          category_name: p.category_name
+        }));
+
+        setProducts(mappedProducts);
+      } catch (error) {
+        console.error("Erreur chargement données:", error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de charger les produits",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [toast]);
 
   const handleProductClick = (product: Product) => {
     setSelectedProduct(product);
@@ -141,10 +138,21 @@ const Home = () => {
         </Select>
       </div>
 
-      {/* Products grid - Prix masqués */}
+      {/* Products grid */}
       <div className="px-4 grid grid-cols-2 gap-4 relative z-10">
-        {products.map((product, index) => (
-          <div
+        {loading ? (
+          <div className="col-span-2 text-center py-8 text-muted-foreground">
+            Chargement...
+          </div>
+        ) : products.length === 0 ? (
+          <div className="col-span-2 text-center py-8 text-muted-foreground">
+            Aucun produit disponible
+          </div>
+        ) : (
+          products
+            .filter(p => selectedCategory === "Toutes les catégories" || p.category_name === selectedCategory)
+            .map((product, index) => (
+            <div
             key={product.id}
             className="card-shop cursor-pointer hover:scale-[1.03] transition-all duration-300"
             onClick={() => handleProductClick(product)}
@@ -166,7 +174,8 @@ const Home = () => {
               </div>
             </div>
           </div>
-        ))}
+          ))
+        )}
       </div>
 
       {/* Bottom Navigation */}
