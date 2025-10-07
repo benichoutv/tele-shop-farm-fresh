@@ -191,13 +191,32 @@ const InfoPage = () => {
             <div className="space-y-3">
               {settings.socialNetworks.map((social) => {
                 const socialLogo = getSocialLogo(social.name);
+                const lowerName = social.name.toLowerCase();
+                
+                // Define gradient colors for each social network
+                let gradientColors = 'from-[hsl(var(--accent))]/20 to-[hsl(var(--accent))]/10 border-[hsl(var(--accent))]/30 hover:border-[hsl(var(--accent))]';
+                
+                if (lowerName.includes('telegram')) {
+                  gradientColors = 'from-[#0088cc]/20 to-[#0088cc]/10 border-[#0088cc]/30 hover:border-[#0088cc]';
+                } else if (lowerName.includes('instagram') || lowerName.includes('insta')) {
+                  gradientColors = 'from-[#E4405F]/20 to-[#E4405F]/10 border-[#E4405F]/30 hover:border-[#E4405F]';
+                } else if (lowerName.includes('potato')) {
+                  gradientColors = 'from-[#4A90E2]/20 to-[#4A90E2]/10 border-[#4A90E2]/30 hover:border-[#4A90E2]';
+                } else if (lowerName.includes('signal')) {
+                  gradientColors = 'from-[#3a76f0]/20 to-[#3a76f0]/10 border-[#3a76f0]/30 hover:border-[#3a76f0]';
+                } else if (lowerName.includes('snapchat') || lowerName.includes('snap')) {
+                  gradientColors = 'from-[#FFFC00]/20 to-[#FFFC00]/10 border-[#FFFC00]/30 hover:border-[#FFFC00]';
+                } else if (lowerName.includes('whatsapp')) {
+                  gradientColors = 'from-[#25D366]/20 to-[#25D366]/10 border-[#25D366]/30 hover:border-[#25D366]';
+                }
+                
                 return (
                   <a
                     key={social.id}
                     href={social.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 p-3 rounded-lg bg-[hsl(var(--accent))] hover:bg-[hsl(var(--accent))]/90 transition-colors"
+                    className={`flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r ${gradientColors} border transition-all hover:scale-[1.02]`}
                   >
                     <div className="w-12 h-12 flex items-center justify-center">
                       {socialLogo ? (
@@ -209,8 +228,8 @@ const InfoPage = () => {
                       )}
                     </div>
                     <div>
-                      <p className="font-semibold text-[hsl(var(--primary))]">{social.name}</p>
-                      <p className="text-sm text-[hsl(var(--primary))]/80">{social.username}</p>
+                      <p className="font-semibold text-foreground">{social.name}</p>
+                      <p className="text-xs text-muted-foreground">{social.username}</p>
                     </div>
                   </a>
                 );
