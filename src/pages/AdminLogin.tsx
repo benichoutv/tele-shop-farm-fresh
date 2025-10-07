@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import logo from "@/assets/logo.png";
+import { authApi } from "@/lib/api";
 
 const AdminLogin = () => {
   const navigate = useNavigate();
@@ -12,18 +13,16 @@ const AdminLogin = () => {
     password: "",
   });
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mock authentication - replace with real backend auth
-    if (credentials.username === "admin" && credentials.password === "admin123") {
+    try {
+      await authApi.login(credentials.username.trim(), credentials.password);
       toast.success("Connexion réussie");
       navigate("/admin/dashboard");
-    } else {
-      toast.error("Identifiants incorrects");
+    } catch (err: any) {
+      toast.error(err?.message || "Identifiants incorrects");
     }
   };
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 logo-watermark">
       <div className="w-full max-w-md relative z-10">
