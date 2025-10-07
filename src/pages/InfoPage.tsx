@@ -143,7 +143,7 @@ const InfoPage = () => {
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#0088cc]/20 to-[#0088cc]/10 border border-[#0088cc]/30 hover:border-[#0088cc] transition-all hover:scale-[1.02]"
             >
               <div className="w-12 h-12 flex items-center justify-center">
-                <img src={telegramLogo} alt="Telegram" className="w-10 h-10 object-contain" />
+                <img src={telegramLogo} alt="Telegram" className="w-12 h-12 object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Telegram</p>
@@ -158,7 +158,7 @@ const InfoPage = () => {
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#25D366]/20 to-[#25D366]/10 border border-[#25D366]/30 hover:border-[#25D366] transition-all hover:scale-[1.02]"
             >
               <div className="w-12 h-12 flex items-center justify-center">
-                <img src={whatsappLogo} alt="WhatsApp" className="w-10 h-10 object-contain" />
+                <img src={whatsappLogo} alt="WhatsApp" className="w-12 h-12 object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">WhatsApp</p>
@@ -173,7 +173,7 @@ const InfoPage = () => {
               className="flex items-center gap-3 p-4 rounded-lg bg-gradient-to-r from-[#3a76f0]/20 to-[#3a76f0]/10 border border-[#3a76f0]/30 hover:border-[#3a76f0] transition-all hover:scale-[1.02]"
             >
               <div className="w-12 h-12 flex items-center justify-center">
-                <img src={signalLogo} alt="Signal" className="w-10 h-10 object-contain" />
+                <img src={signalLogo} alt="Signal" className="w-12 h-12 object-contain" />
               </div>
               <div>
                 <p className="font-semibold text-foreground">Signal</p>
@@ -201,7 +201,7 @@ const InfoPage = () => {
                   >
                     <div className="w-12 h-12 flex items-center justify-center">
                       {socialLogo ? (
-                        <img src={socialLogo} alt={social.name} className="w-10 h-10 object-contain" />
+                        <img src={socialLogo} alt={social.name} className="w-12 h-12 object-contain" />
                       ) : (
                         <div className="w-10 h-10 rounded-full bg-[hsl(var(--primary))] flex items-center justify-center">
                           <MessageCircle className="w-5 h-5 text-[hsl(var(--accent))]" />
