@@ -22,7 +22,13 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Identifiants incorrects' });
     }
     
-    const validPassword = await bcrypt.compare(password, user.password_hash);
+    // Support legacy PHP-style bcrypt hashes ($2y$) by normalizing to $2a$
+    let storedHash = user.password_hash || '';
+    if (storedHash.startsWith('$2y$')) {
+      storedHash = storedHash.replace(/^\$2y\$/, '$2a$');
+    }
+
+    const validPassword = await bcrypt.compare(password, storedHash);
     
     if (!validPassword) {
       return res.status(401).json({ error: 'Identifiants incorrects' });
