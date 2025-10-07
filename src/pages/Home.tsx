@@ -5,6 +5,7 @@ import logo from "@/assets/logo.png";
 import ProductModal from "@/components/ProductModal";
 import { productsApi, categoriesApi, settingsApi } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { useCart } from "@/contexts/CartContext";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,7 @@ const Home = () => {
   const [categories, setCategories] = useState<string[]>(["Toutes les catégories"]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { addToCart, itemCount } = useCart();
   
   const telegramUsername = "Benichou";
 
@@ -97,8 +99,15 @@ const Home = () => {
   };
 
   const handleAddToCart = (product: Product, selectedPrice: ProductPrice, quantity: number) => {
-    console.log("Ajout au panier:", { product, selectedPrice, quantity });
-    // TODO: Implémenter la vraie logique d'ajout au panier
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      variety: product.variety,
+      image: product.image,
+      weight: selectedPrice.weight,
+      price: selectedPrice.price,
+      quantity,
+    });
   };
 
   return (
@@ -201,9 +210,11 @@ const Home = () => {
           >
             <ShoppingCart className="w-6 h-6" />
             <span className="text-xs font-medium">Panier</span>
-            <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
-              1
-            </span>
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
+                {itemCount}
+              </span>
+            )}
           </Link>
         </div>
       </nav>

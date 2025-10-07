@@ -1,46 +1,64 @@
 import { useState } from "react";
-import { Home, Info, ShoppingCart, Trash2 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Home, Info, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useCart } from "@/contexts/CartContext";
+import { ordersApi } from "@/lib/api";
 import logo from "@/assets/logo.png";
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 2,
-      name: "Cali spain",
-      weight: "5g",
-      quantity: 1,
-      price: 50,
-      image: "https://images.unsplash.com/photo-1508485622500-3c1c3c1d8d4b?w=500&auto=format&fit=crop",
-    },
-  ]);
-
+  const { items, removeFromCart, updateQuantity, total, itemCount, clearCart } = useCart();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
     address: "",
   });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const removeItem = (id: number) => {
-    setCartItems(cartItems.filter(item => item.id !== id));
-    toast.success("Produit retiré du panier");
-  };
-
-  const handleOrder = (e: React.FormEvent) => {
+  const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!formData.name || !formData.phone || !formData.address) {
       toast.error("Veuillez remplir tous les champs");
       return;
     }
     
-    // Here would be the Telegram API call
-    toast.success("Commande envoyée ! Vous recevrez une confirmation sur Telegram.");
-    console.log("Order:", { items: cartItems, customer: formData, total });
+    if (items.length === 0) {
+      toast.error("Votre panier est vide");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      
+      await ordersApi.create({
+        customer_name: formData.name,
+        customer_phone: formData.phone,
+        customer_address: formData.address,
+        items: items.map(item => ({
+          product_id: item.productId,
+          product_name: item.name,
+          weight: item.weight,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+        total,
+      });
+      
+      toast.success("Commande envoyée ! Vous recevrez une confirmation sur Telegram.");
+      clearCart();
+      navigate("/");
+    } catch (error) {
+      console.error("Erreur commande:", error);
+      toast.error("Erreur lors de l'envoi de la commande");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,33 +75,56 @@ const Cart = () => {
 
       {/* Cart items */}
       <div className="px-4 mb-6 relative z-10">
-        {cartItems.length === 0 ? (
+        {items.length === 0 ? (
           <div className="card-shop p-8 text-center">
             <ShoppingCart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <p className="text-muted-foreground">Votre panier est vide</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {cartItems.map((item) => (
-              <div key={item.id} className="card-shop p-4 flex items-center gap-4">
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-20 h-20 rounded-lg object-cover"
-                />
-                <div className="flex-1">
-                  <h3 className="font-semibold text-foreground">{item.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {item.weight} × {item.quantity}
-                  </p>
-                  <p className="text-[hsl(var(--accent))] font-bold">{item.price.toFixed(2)}€</p>
+            {items.map((item) => (
+              <div key={`${item.productId}-${item.weight}`} className="card-shop p-4">
+                <div className="flex items-start gap-4">
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="w-20 h-20 rounded-lg object-cover flex-shrink-0"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-foreground truncate">{item.name}</h3>
+                    <p className="text-sm text-muted-foreground">{item.variety}</p>
+                    <p className="text-sm text-muted-foreground">{item.weight}</p>
+                    <p className="text-accent font-bold">{item.price.toFixed(2)}€</p>
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.productId, item.weight)}
+                    className="text-destructive hover:bg-destructive/10 p-2 rounded-lg transition-colors flex-shrink-0"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => removeItem(item.id)}
-                  className="text-destructive hover:bg-destructive/10 p-2 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-5 h-5" />
-                </button>
+                
+                {/* Quantity controls */}
+                <div className="flex items-center justify-end gap-3 mt-3">
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.weight, item.quantity - 1)}
+                    className="w-8 h-8 rounded-lg bg-accent/10 hover:bg-accent/20 transition-colors flex items-center justify-center"
+                  >
+                    <Minus className="w-4 h-4 text-accent" />
+                  </button>
+                  <span className="text-foreground font-semibold w-8 text-center">
+                    {item.quantity}
+                  </span>
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.weight, item.quantity + 1)}
+                    className="w-8 h-8 rounded-lg bg-accent/10 hover:bg-accent/20 transition-colors flex items-center justify-center"
+                  >
+                    <Plus className="w-4 h-4 text-accent" />
+                  </button>
+                  <span className="text-muted-foreground text-sm ml-2">
+                    = {(item.price * item.quantity).toFixed(2)}€
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -91,7 +132,7 @@ const Cart = () => {
       </div>
 
       {/* Order form */}
-      {cartItems.length > 0 && (
+      {items.length > 0 && (
         <form onSubmit={handleOrder} className="px-4 space-y-5 relative z-10">
           <div className="card-shop p-5">
             <h2 className="text-xl font-bold text-foreground mb-4">
@@ -148,8 +189,12 @@ const Cart = () => {
                 {total.toFixed(2)}€
               </span>
             </div>
-            <Button type="submit" className="w-full bg-accent text-black hover:bg-accent/90 font-bold rounded-xl py-6 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98]">
-              Commander
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full bg-accent text-black hover:bg-accent/90 font-bold rounded-xl py-6 text-lg transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
+            >
+              {isSubmitting ? "Envoi en cours..." : "Commander"}
             </Button>
           </div>
         </form>
@@ -178,9 +223,9 @@ const Cart = () => {
           >
             <ShoppingCart className="w-6 h-6" />
             <span className="text-xs font-semibold">Panier</span>
-            {cartItems.length > 0 && (
+            {itemCount > 0 && (
               <span className="absolute -top-2 -right-2 bg-gradient-to-br from-destructive to-red-600 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold shadow-lg floating-badge">
-                {cartItems.length}
+                {itemCount}
               </span>
             )}
           </Link>
