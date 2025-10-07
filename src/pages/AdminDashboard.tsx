@@ -326,8 +326,9 @@ export default function AdminDashboard() {
 
   const handleSaveSettings = async () => {
     try {
-      // Save all settings to API
-      await settingsApi.update({
+      console.log("💾 Sauvegarde des paramètres...");
+      
+      const settingsToSave = {
         welcome_message: settings.welcomeMessage,
         telegram_contact: settings.telegramLink,
         whatsapp_link: settings.whatsappLink,
@@ -337,14 +338,28 @@ export default function AdminDashboard() {
         delivery_zone: settings.deliveryZone,
         delivery_hours: settings.deliveryHours,
         social_networks: JSON.stringify(settings.socialNetworks)
-      });
+      };
       
-      toast({ title: "Paramètres sauvegardés avec succès" });
-    } catch (error) {
-      console.error("Erreur sauvegarde:", error);
+      console.log("📤 Données envoyées:", settingsToSave);
+      
+      const response = await settingsApi.update(settingsToSave);
+      console.log("✅ Réponse API:", response);
+      
+      // Save to localStorage as fallback
+      localStorage.setItem('appSettings', JSON.stringify(settings));
+      
       toast({ 
-        title: "Erreur", 
-        description: "Impossible de sauvegarder les paramètres",
+        title: "✅ Paramètres sauvegardés", 
+        description: "Vos modifications ont été enregistrées"
+      });
+    } catch (error: any) {
+      console.error("❌ Erreur sauvegarde complète:", error);
+      console.error("Message:", error?.message);
+      console.error("Response:", error?.response);
+      
+      toast({ 
+        title: "Erreur de sauvegarde", 
+        description: error?.message || "Impossible de sauvegarder les paramètres",
         variant: "destructive" 
       });
     }

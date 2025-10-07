@@ -1,8 +1,9 @@
 import { X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ProductPrice {
   weight: string;
@@ -32,6 +33,17 @@ interface ProductModalProps {
 export default function ProductModal({ product, isOpen, onClose, onAddToCart }: ProductModalProps) {
   const [selectedPrice, setSelectedPrice] = useState<ProductPrice | null>(null);
   const [quantity, setQuantity] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const isMobile = useIsMobile();
+
+  // Auto-play video once on mobile when modal opens
+  useEffect(() => {
+    if (isOpen && isMobile && videoRef.current && product?.videoUrl) {
+      videoRef.current.play().catch(err => {
+        console.log("Autoplay prevented:", err);
+      });
+    }
+  }, [isOpen, isMobile, product?.videoUrl]);
 
   if (!product) return null;
 
@@ -62,17 +74,19 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
           <X className="w-5 h-5" />
         </button>
 
-        <div className="grid md:grid-cols-2 gap-0 overflow-y-auto">
+        <div className="flex flex-col md:grid md:grid-cols-2 gap-0 overflow-y-auto">
           {/* Media Section - priorité à la vidéo si disponible */}
-          <div className="relative bg-black/30 aspect-square md:aspect-auto flex-shrink-0">
+          <div className={`relative bg-black/30 flex-shrink-0 ${
+            isMobile ? 'w-full max-h-[40vh]' : 'aspect-square md:aspect-auto'
+          }`}>
             {product.videoUrl ? (
               <video
+                ref={videoRef}
                 src={product.videoUrl}
                 controls
-                autoPlay
-                loop
                 muted
-                className="w-full h-full object-cover"
+                playsInline
+                className={`w-full h-full ${isMobile ? 'object-contain' : 'object-cover'}`}
               />
             ) : (
               <img
