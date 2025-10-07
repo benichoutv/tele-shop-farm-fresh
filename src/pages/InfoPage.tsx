@@ -7,6 +7,7 @@ import whatsappLogo from "@/assets/whatsapp-logo.png";
 import signalLogo from "@/assets/signal-logo.png";
 import snapchatLogo from "@/assets/snapchat-logo.png";
 import potatoLogo from "@/assets/potato-logo.png";
+import instagramLogo from "@/assets/instagram-logo.webp";
 
 interface SocialNetwork {
   id: string;
@@ -23,6 +24,7 @@ const getSocialLogo = (name: string) => {
   if (lowerName.includes('signal')) return signalLogo;
   if (lowerName.includes('snapchat') || lowerName.includes('snap')) return snapchatLogo;
   if (lowerName.includes('potato')) return potatoLogo;
+  if (lowerName.includes('instagram') || lowerName.includes('insta')) return instagramLogo;
   return null;
 };
 
