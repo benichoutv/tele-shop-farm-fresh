@@ -132,7 +132,7 @@ export default function AdminDashboard() {
     description: "",
     imageFile: null as File | null,
     videoFile: null as File | null,
-    prices: [{ weight: "1g", price: 0 }]
+    prices: [{ weight: "1g", price: "" as any }]
   });
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +163,7 @@ export default function AdminDashboard() {
       description: "",
       imageFile: null,
       videoFile: null,
-      prices: [{ weight: "1g", price: 0 }]
+      prices: [{ weight: "1g", price: "" as any }]
     });
     setShowProductDialog(true);
   };
@@ -285,7 +285,7 @@ export default function AdminDashboard() {
   const handleAddPrice = () => {
     setFormData({
       ...formData,
-      prices: [...formData.prices, { weight: "", price: 0 }]
+      prices: [...formData.prices, { weight: "", price: "" as any }]
     });
   };
 
@@ -939,9 +939,11 @@ export default function AdminDashboard() {
                       <Input
                         type="number"
                         value={price.price}
-                        onChange={(e) => handlePriceChange(index, "price", parseFloat(e.target.value) || 0)}
+                        onChange={(e) => handlePriceChange(index, "price", e.target.value === "" ? "" : parseFloat(e.target.value))}
                         placeholder="30"
                         className="input-shop"
+                        min="0"
+                        step="0.01"
                       />
                     </div>
                     {formData.prices.length > 1 && (
