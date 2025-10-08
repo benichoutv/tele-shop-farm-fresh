@@ -76,7 +76,7 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
 
         <div className="flex flex-col md:grid md:grid-cols-2 gap-0 overflow-y-auto">
           {/* Media Section - priorité à la vidéo si disponible */}
-          <div className="relative bg-black/30 flex-shrink-0 w-full aspect-video">
+          <div className="relative bg-black/30 flex-shrink-0 w-full aspect-video overflow-hidden max-h-[50vh] md:max-h-none">
             {product.videoUrl ? (
               <video
                 ref={videoRef}
@@ -84,13 +84,13 @@ export default function ProductModal({ product, isOpen, onClose, onAddToCart }: 
                 controls
                 muted
                 playsInline
-                className="w-full h-full object-cover object-center"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
               <img
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             )}
           </div>
