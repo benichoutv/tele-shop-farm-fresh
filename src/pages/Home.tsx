@@ -57,10 +57,6 @@ const Home = () => {
         const settings = await settingsApi.getAll();
         setWelcomeMessage(settings.welcome_message || "Bienvenue sur l'app RSlive 👋");
 
-        // Load categories
-        const categoriesData = await categoriesApi.getAll();
-        setCategories(["Toutes les catégories", ...categoriesData.map((c: any) => c.name)]);
-
         // Load products
         const productsData = await productsApi.getAll();
         
@@ -76,10 +72,20 @@ const Home = () => {
           mediaType: (p.video_url ? "video" : "image") as "image" | "video",
           description: p.description || "",
           prices: p.prices || [],
-          category_name: p.category_name
+          category_name: (p.category_name || undefined) as string | undefined
         }));
 
         setProducts(mappedProducts);
+
+        // Extract unique categories from products
+        const categorySet = new Set<string>();
+        mappedProducts.forEach(p => {
+          if (p.category_name && typeof p.category_name === 'string' && p.category_name.trim() !== '') {
+            categorySet.add(p.category_name);
+          }
+        });
+        const uniqueCategories: string[] = Array.from(categorySet);
+        setCategories(["Toutes les catégories", ...uniqueCategories]);
       } catch (error) {
         console.error("Erreur chargement données:", error);
         toast({
