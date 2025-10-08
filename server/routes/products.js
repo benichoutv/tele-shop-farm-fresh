@@ -25,13 +25,17 @@ const upload = multer({
   storage,
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|webp|mp4|webm/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (mimetype && extname) {
+    const allowedImageTypes = /jpeg|jpg|png|webp/;
+    const allowedVideoTypes = /mp4|webm|mov|quicktime/;
+    const isImage = allowedImageTypes.test(path.extname(file.originalname).toLowerCase()) || 
+                    file.mimetype.startsWith('image/');
+    const isVideo = allowedVideoTypes.test(path.extname(file.originalname).toLowerCase()) || 
+                    file.mimetype.startsWith('video/');
+    
+    if (isImage || isVideo) {
       return cb(null, true);
     }
-    cb(new Error('Seuls les fichiers jpg, png, webp, mp4, webm sont acceptés'));
+    cb(new Error('Seuls les fichiers image (jpg, png, webp) et vidéo (mp4, webm, mov) sont acceptés'));
   }
 });
 

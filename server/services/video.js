@@ -10,17 +10,21 @@ export async function convertVideo(inputPath) {
       .outputOptions([
         '-vf scale=-2:480',
         '-c:v libx264',
+        '-profile:v baseline',
+        '-level 3.0',
         '-preset fast',
         '-crf 28',
         '-c:a aac',
         '-b:a 128k',
-        '-movflags +faststart'
+        '-movflags +faststart',
+        '-pix_fmt yuv420p'
       ])
       .output(outputPath)
       .on('end', async () => {
         // Delete original file after conversion
         try {
           await fs.unlink(inputPath);
+          console.log(`Video converted successfully: ${path.basename(outputPath)}`);
         } catch (err) {
           console.error('Error deleting original video:', err);
         }
