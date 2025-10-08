@@ -127,6 +127,7 @@ export default function AdminDashboard() {
 
   const [formData, setFormData] = useState({
     name: "",
+    variety: "",
     category: "",
     farm: "",
     description: "",
@@ -158,6 +159,7 @@ export default function AdminDashboard() {
     setEditingProduct(null);
     setFormData({
       name: "",
+      variety: "",
       category: "",
       farm: "",
       description: "",
@@ -172,6 +174,7 @@ export default function AdminDashboard() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
+      variety: product.category, // La catégorie actuelle devient la variété
       category: product.category,
       farm: product.farm,
       description: product.description,
@@ -221,7 +224,7 @@ export default function AdminDashboard() {
       // Create FormData for product
       const productFormData = new FormData();
       productFormData.append('name', formData.name);
-      productFormData.append('variety', formData.category);
+      productFormData.append('variety', formData.variety);
       productFormData.append('category_id', String(categoryId));
       productFormData.append('farm', formData.farm);
       productFormData.append('description', formData.description);
@@ -772,8 +775,8 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Label className="text-foreground">Variété *</Label>
                 <Input
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  value={formData.variety}
+                  onChange={(e) => setFormData({ ...formData, variety: e.target.value })}
                   placeholder="Original amnesia"
                   className="input-shop"
                 />
