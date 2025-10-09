@@ -1,12 +1,22 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Home, Info, ShoppingCart, Trash2, Plus, Minus } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useCart } from "@/contexts/CartContext";
-import { ordersApi } from "@/lib/api";
+import { ordersApi, settingsApi } from "@/lib/api";
 import logo from "@/assets/logo.png";
+
+declare global {
+  interface Window {
+    Telegram?: {
+      WebApp: {
+        openTelegramLink: (url: string) => void;
+      };
+    };
+  }
+}
 
 const Cart = () => {
   const { items, removeFromCart, updateQuantity, total, itemCount, clearCart } = useCart();
@@ -19,6 +29,20 @@ const Cart = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [telegramContact, setTelegramContact] = useState<string>("");
+
+  // Load Telegram contact from settings
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        const settings = await settingsApi.getAll();
+        setTelegramContact(settings.telegram_contact || '');
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      }
+    };
+    loadSettings();
+  }, []);
 
   const handleOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +60,7 @@ const Cart = () => {
     try {
       setIsSubmitting(true);
       
-      await ordersApi.create({
+      const response = await ordersApi.create({
         customer_name: formData.name,
         customer_phone: formData.phone,
         customer_address: formData.address,
@@ -50,7 +74,36 @@ const Cart = () => {
         total,
       });
       
-      toast.success("Commande envoyée ! Vous recevrez une confirmation sur Telegram.");
+      // Format order message for Telegram
+      let message = `🛒 Nouvelle Commande\n\n`;
+      message += `👤 Nom: ${formData.name}\n`;
+      message += `📱 Téléphone: ${formData.phone}\n`;
+      message += `📍 Adresse: ${formData.address}\n\n`;
+      message += `Produits:\n`;
+      
+      items.forEach((item, index) => {
+        message += `${index + 1}. ${item.name} - ${item.weight} (x${item.quantity}) - ${item.price.toFixed(2)}€\n`;
+      });
+      
+      message += `\n💰 Total: ${total.toFixed(2)}€`;
+      
+      // Open Telegram chat with pre-filled message
+      if (telegramContact && window.Telegram?.WebApp) {
+        const encodedMessage = encodeURIComponent(message);
+        const username = telegramContact.replace('@', '');
+        const telegramLink = `https://t.me/${username}?text=${encodedMessage}`;
+        
+        try {
+          window.Telegram.WebApp.openTelegramLink(telegramLink);
+          toast.success("Ouverture de Telegram... Envoyez le message pour finaliser votre commande !");
+        } catch (error) {
+          console.error("Error opening Telegram:", error);
+          toast.warning("Veuillez contacter le standard sur Telegram pour finaliser votre commande.");
+        }
+      } else {
+        toast.success("Commande enregistrée ! Contactez le standard sur Telegram pour finaliser.");
+      }
+      
       clearCart();
       navigate("/");
     } catch (error) {
