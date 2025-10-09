@@ -44,8 +44,17 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { addToCart, itemCount } = useCart();
-  
-  const telegramUsername = "Benichou";
+  const [telegramUsername, setTelegramUsername] = useState("");
+
+  // Get Telegram username
+  useEffect(() => {
+    const tg = (window as any).Telegram?.WebApp;
+    if (tg?.initDataUnsafe?.user) {
+      const user = tg.initDataUnsafe.user;
+      const username = user.username || user.first_name || "";
+      setTelegramUsername(username);
+    }
+  }, []);
 
   // Load data from API
   useEffect(() => {
