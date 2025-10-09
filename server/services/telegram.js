@@ -9,12 +9,12 @@ function getBot() {
   return bot;
 }
 
-export async function sendOrderNotification(orderData) {
+export async function sendOrderNotification(orderData, adminContact = null) {
   try {
     const telegramBot = getBot();
-    const adminContact = process.env.TELEGRAM_ADMIN_CONTACT;
+    const contact = adminContact || process.env.TELEGRAM_ADMIN_CONTACT;
     
-    if (!telegramBot || !adminContact) {
+    if (!telegramBot || !contact) {
       console.warn('Telegram bot not configured, skipping notification');
       return;
     }
@@ -36,7 +36,7 @@ export async function sendOrderNotification(orderData) {
     
     message += `\n💰 *Total:* ${total}€`;
     
-    await telegramBot.sendMessage(adminContact, message, { parse_mode: 'Markdown' });
+    await telegramBot.sendMessage(contact, message, { parse_mode: 'Markdown' });
     console.log('Order notification sent successfully');
   } catch (error) {
     console.error('Error sending Telegram notification:', error);

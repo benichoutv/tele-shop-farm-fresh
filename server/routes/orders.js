@@ -33,6 +33,10 @@ router.post('/', async (req, res) => {
       );
     }
     
+    // Get admin Telegram contact from settings
+    const settings = await db.all('SELECT * FROM settings');
+    const telegramContact = settings.find(s => s.key === 'telegram_contact')?.value;
+    
     // Send Telegram notification
     await sendOrderNotification({
       orderId,
@@ -42,7 +46,7 @@ router.post('/', async (req, res) => {
       telegram_username,
       items,
       total
-    });
+    }, telegramContact);
     
     res.status(201).json({ id: orderId, message: 'Commande créée avec succès' });
   } catch (error) {
