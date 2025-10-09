@@ -81,10 +81,12 @@ const Cart = () => {
       message += `👤 Nom: ${formData.name}\n`;
       message += `📱 Téléphone: ${formData.phone}\n`;
       message += `📍 Adresse: ${formData.address}\n\n`;
-      message += `Produits:\n`;
+      message += `📦 Produits commandés:\n\n`;
       
       items.forEach((item, index) => {
-        message += `${index + 1}. ${item.name} - ${item.weight} (x${item.quantity}) - ${item.price.toFixed(2)}€\n`;
+        const itemTotal = (item.price * item.quantity).toFixed(2);
+        message += `${index + 1}. ${item.name} - ${item.variety}\n`;
+        message += `   • ${item.weight} × ${item.quantity} = ${itemTotal}€\n\n`;
       });
       
       message += `\n💰 Total: ${total.toFixed(2)}€`;
