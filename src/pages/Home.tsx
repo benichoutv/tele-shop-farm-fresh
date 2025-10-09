@@ -165,7 +165,7 @@ const Home = () => {
       <div className="text-center mb-4 px-4 relative z-10 mt-3 overflow-hidden">
         <div className="scrolling-text">
           <span className="text-lg font-bold text-foreground animate-fade-in">
-            {welcomeMessage} {telegramUsername}
+            {welcomeMessage}
           </span>
         </div>
         <p className="text-xs font-medium text-muted-foreground mt-1">Liste des produits</p>
