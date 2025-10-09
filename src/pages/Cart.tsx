@@ -30,6 +30,8 @@ const Cart = () => {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [telegramContact, setTelegramContact] = useState<string>("");
+  const [telegramLink, setTelegramLink] = useState<string>("");
+  const [showTelegramButton, setShowTelegramButton] = useState(false);
 
   // Load Telegram contact from settings
   useEffect(() => {
@@ -87,25 +89,19 @@ const Cart = () => {
       
       message += `\n💰 Total: ${total.toFixed(2)}€`;
       
-      // Open Telegram chat with pre-filled message
-      if (telegramContact && window.Telegram?.WebApp) {
+      // Prepare Telegram link
+      if (telegramContact) {
         const encodedMessage = encodeURIComponent(message);
         const username = telegramContact.replace('@', '');
-        const telegramLink = `https://t.me/${username}?text=${encodedMessage}`;
-        
-        try {
-          window.Telegram.WebApp.openTelegramLink(telegramLink);
-          toast.success("Ouverture de Telegram... Envoyez le message pour finaliser votre commande !");
-        } catch (error) {
-          console.error("Error opening Telegram:", error);
-          toast.warning("Veuillez contacter le standard sur Telegram pour finaliser votre commande.");
-        }
+        const link = `https://t.me/${username}?text=${encodedMessage}`;
+        setTelegramLink(link);
+        setShowTelegramButton(true);
+        clearCart();
       } else {
-        toast.success("Commande enregistrée ! Contactez le standard sur Telegram pour finaliser.");
+        toast.success("Commande enregistrée ! Contactez le standard pour finaliser.");
+        clearCart();
+        navigate("/");
       }
-      
-      clearCart();
-      navigate("/");
     } catch (error) {
       console.error("Erreur commande:", error);
       toast.error("Erreur lors de l'envoi de la commande");
@@ -116,6 +112,45 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 logo-watermark">
+      {/* Telegram Modal */}
+      {showTelegramButton && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl p-8 max-w-md w-full shadow-2xl border-2 border-accent/30">
+            <div className="text-center mb-6">
+              <div className="w-20 h-20 bg-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-5xl">✅</span>
+              </div>
+              <h2 className="text-2xl font-bold text-foreground mb-2">Commande enregistrée</h2>
+              <p className="text-muted-foreground">
+                Cliquez sur le bouton ci-dessous pour envoyer votre commande au standard via Telegram.
+              </p>
+            </div>
+            
+            <a
+              href={telegramLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full mb-4"
+            >
+              <Button className="w-full h-14 text-lg bg-accent hover:bg-accent/90 text-black font-bold">
+                📱 Ouvrir Telegram
+              </Button>
+            </a>
+            
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                setShowTelegramButton(false);
+                navigate("/");
+              }}
+            >
+              Fermer
+            </Button>
+          </div>
+        </div>
+      )}
+      
       {/* Header with logo */}
       <div className="pt-6 pb-4 flex justify-center relative z-10">
         <img src={logo} alt="RSLIV Logo" className="w-32 h-32 object-contain drop-shadow-2xl" />
