@@ -48,11 +48,34 @@ const Home = () => {
 
   // Get Telegram username
   useEffect(() => {
-    const tg = (window as any).Telegram?.WebApp;
-    if (tg?.initDataUnsafe?.user) {
-      const user = tg.initDataUnsafe.user;
-      const username = user.username || user.first_name || "";
-      setTelegramUsername(username);
+    const initTelegram = () => {
+      const tg = (window as any).Telegram?.WebApp;
+      console.log("Telegram WebApp:", tg);
+      console.log("Telegram user data:", tg?.initDataUnsafe?.user);
+      
+      if (tg?.initDataUnsafe?.user) {
+        const user = tg.initDataUnsafe.user;
+        const username = user.username || user.first_name || "";
+        console.log("Setting username:", username);
+        setTelegramUsername(username);
+      } else {
+        console.log("No Telegram user data available");
+      }
+    };
+
+    // Wait for Telegram script to load
+    if ((window as any).Telegram?.WebApp) {
+      initTelegram();
+    } else {
+      const checkTelegram = setInterval(() => {
+        if ((window as any).Telegram?.WebApp) {
+          clearInterval(checkTelegram);
+          initTelegram();
+        }
+      }, 100);
+
+      // Cleanup after 5 seconds
+      setTimeout(() => clearInterval(checkTelegram), 5000);
     }
   }, []);
 
