@@ -4,13 +4,10 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get roulette settings (public)
-router.get('/settings', async (req, res) => {
+// Helper: Ensure roulette_settings table and columns exist
+async function ensureSettingsSchema(db) {
   try {
-    console.log('📖 GET /settings appelé');
-    const db = await getDb();
-
-    // Ensure table exists to avoid "no such table" errors
+    // Create table if not exists
     await db.exec(`
       CREATE TABLE IF NOT EXISTS roulette_settings (
         id INTEGER PRIMARY KEY,
@@ -19,6 +16,67 @@ router.get('/settings', async (req, res) => {
         require_code INTEGER DEFAULT 1
       )
     `);
+
+    // Get existing columns
+    let columns = [];
+    try {
+      const columnInfo = await db.all('PRAGMA table_info(roulette_settings)');
+      columns = columnInfo.map(col => col.name);
+    } catch (e) {
+      // Fallback for PostgreSQL
+      const columnInfo = await db.all(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name='roulette_settings'
+      `);
+      columns = columnInfo.map(col => col.column_name);
+    }
+
+    // Add missing columns
+    const requiredColumns = {
+      active: 'INTEGER DEFAULT 0',
+      max_spins_per_user: 'INTEGER DEFAULT 1',
+      require_code: 'INTEGER DEFAULT 1'
+    };
+
+    for (const [colName, colType] of Object.entries(requiredColumns)) {
+      if (!columns.includes(colName)) {
+        try {
+          await db.exec(`ALTER TABLE roulette_settings ADD COLUMN ${colName} ${colType}`);
+          console.log(`✅ Colonne ${colName} ajoutée`);
+        } catch (err) {
+          // Ignore if column already exists
+          if (!err.message.includes('duplicate column')) {
+            console.warn(`⚠️ Impossible d'ajouter ${colName}:`, err.message);
+          }
+        }
+      }
+    }
+
+    // Ensure row id=1 exists
+    const existing = await db.get('SELECT id FROM roulette_settings WHERE id = 1');
+    if (!existing) {
+      await db.run(
+        'INSERT INTO roulette_settings (id, active, max_spins_per_user, require_code) VALUES (1, 0, 1, 1)'
+      );
+      console.log('✅ Ligne settings id=1 créée');
+    }
+
+    return { success: true, columns };
+  } catch (error) {
+    console.error('❌ Erreur ensureSettingsSchema:', error);
+    throw error;
+  }
+}
+
+// Get roulette settings (public)
+router.get('/settings', async (req, res) => {
+  try {
+    console.log('📖 GET /settings appelé');
+    const db = await getDb();
+    
+    // Auto-repair schema
+    await ensureSettingsSchema(db);
 
     const settings = await db.get('SELECT * FROM roulette_settings WHERE id = 1');
     
@@ -32,8 +90,12 @@ router.get('/settings', async (req, res) => {
     }
     
     console.log('✅ Settings trouvés:', settings);
-    // Force require_code à true
-    res.json({ ...settings, require_code: true });
+    // Normalize response (handle old column names if any)
+    res.json({ 
+      active: Boolean(settings.active ?? 0),
+      max_spins_per_user: Number(settings.max_spins_per_user ?? 1),
+      require_code: true
+    });
   } catch (error) {
     console.error('❌ Error fetching roulette settings:', error);
     res.status(500).json({ error: 'Erreur serveur' });
@@ -191,36 +253,22 @@ router.put('/admin/settings', authMiddleware, async (req, res) => {
     const { active, max_spins_per_user } = req.body;
     
     const db = await getDb();
-
-    // Ensure table exists
-    await db.exec(`
-      CREATE TABLE IF NOT EXISTS roulette_settings (
-        id INTEGER PRIMARY KEY,
-        active INTEGER DEFAULT 0,
-        max_spins_per_user INTEGER DEFAULT 1,
-        require_code INTEGER DEFAULT 1
-      )
-    `);
-
-    // Ensure row exists then update
-    const existing = await db.get('SELECT id FROM roulette_settings WHERE id = 1');
-    if (!existing) {
-      await db.run(
-        'INSERT INTO roulette_settings (id, active, max_spins_per_user, require_code) VALUES (1, ?, ?, 1)',
-        [active ? 1 : 0, (typeof max_spins_per_user === 'number' ? max_spins_per_user : 1)]
-      );
-    } else {
-      await db.run(
-        'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = 1 WHERE id = 1',
-        [active ? 1 : 0, (typeof max_spins_per_user === 'number' ? max_spins_per_user : 1)]
-      );
-    }
     
-    console.log('✅ Settings mis à jour (auto-création OK)');
+    // Auto-repair schema before update
+    await ensureSettingsSchema(db);
+
+    // Update settings
+    await db.run(
+      'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = 1 WHERE id = 1',
+      [active ? 1 : 0, (typeof max_spins_per_user === 'number' ? max_spins_per_user : 1)]
+    );
+    
+    console.log('✅ Settings mis à jour');
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Error updating settings:', error);
-    res.status(500).json({ error: 'Erreur serveur' });
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'Erreur serveur', details: error.message });
   }
 });
 
@@ -360,6 +408,53 @@ router.get('/admin/spins', authMiddleware, async (req, res) => {
   } catch (error) {
     console.error('Error fetching spins:', error);
     res.status(500).json({ error: 'Erreur serveur' });
+  }
+});
+
+// Diagnostic endpoint (admin)
+router.get('/admin/diag', authMiddleware, async (req, res) => {
+  try {
+    const db = await getDb();
+    
+    // Get columns
+    let columns = [];
+    try {
+      const columnInfo = await db.all('PRAGMA table_info(roulette_settings)');
+      columns = columnInfo.map(col => ({ name: col.name, type: col.type }));
+    } catch (e) {
+      const columnInfo = await db.all(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name='roulette_settings'
+      `);
+      columns = columnInfo.map(col => ({ name: col.column_name, type: col.data_type }));
+    }
+    
+    // Get settings row
+    const settings = await db.get('SELECT * FROM roulette_settings WHERE id = 1');
+    
+    // Count records
+    const prizesCount = await db.get('SELECT COUNT(*) as count FROM roulette_prizes');
+    const codesCount = await db.get('SELECT COUNT(*) as count FROM roulette_codes');
+    const spinsCount = await db.get('SELECT COUNT(*) as count FROM roulette_spins');
+    
+    res.json({
+      schema_ok: true,
+      columns,
+      settings_row: settings,
+      counts: {
+        prizes: prizesCount?.count || 0,
+        codes: codesCount?.count || 0,
+        spins: spinsCount?.count || 0
+      }
+    });
+  } catch (error) {
+    console.error('Error in diagnostic:', error);
+    res.status(500).json({ 
+      error: 'Erreur diagnostic',
+      details: error.message,
+      schema_ok: false
+    });
   }
 });
 
