@@ -52,7 +52,7 @@ interface Prize {
   name: string;
   probability: number;
   color: string;
-  tier: 'jackpot' | 'rare' | 'commun' | 'standard';
+  tier?: 'jackpot' | 'rare' | 'commun' | 'standard';
 }
 
 interface RouletteCode {
@@ -96,7 +96,10 @@ export default function AdminDashboard() {
   const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
   const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   
-  // Individual prize states for each tier
+  // New prize inline form
+  const [newPrize, setNewPrize] = useState<{ name: string; probability: number }>({ name: '', probability: 10 });
+  
+  // Legacy tier names (kept for backward compatibility, not used in new UI)
   const [prizeNames, setPrizeNames] = useState({
     jackpot: '',
     rare: '',
@@ -540,6 +543,62 @@ export default function AdminDashboard() {
       toast({ title: "Erreur", description: "Impossible de sauvegarder", variant: "destructive" });
     } finally {
       setIsUpdatingSettings(false);
+    }
+  };
+  
+  // Prizes CRUD (dynamic)
+  const reloadPrizes = async () => {
+    const token = localStorage.getItem('auth_token');
+    const res = await fetch('/api/roulette/admin/prizes', { headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) setPrizes(await res.json());
+  };
+
+  const handleCreatePrize = async () => {
+    if (!newPrize.name.trim()) {
+      toast({ title: 'Nom requis', variant: 'destructive' });
+      return;
+    }
+    const token = localStorage.getItem('auth_token');
+    const res = await fetch('/api/roulette/admin/prizes', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: newPrize.name, probability: Number(newPrize.probability) || 0 })
+    });
+    if (res.ok) {
+      setNewPrize({ name: '', probability: 10 });
+      await reloadPrizes();
+      toast({ title: 'Lot ajouté' });
+    } else {
+      const err = await res.json();
+      toast({ title: 'Erreur', description: err.error, variant: 'destructive' });
+    }
+  };
+
+  const handleUpdatePrize = async (p: Prize) => {
+    const token = localStorage.getItem('auth_token');
+    const res = await fetch(`/api/roulette/admin/prizes/${p.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ name: p.name, probability: Number(p.probability) })
+    });
+    if (res.ok) {
+      toast({ title: 'Lot mis à jour' });
+      await reloadPrizes();
+    } else {
+      const err = await res.json();
+      toast({ title: 'Erreur', description: err.error, variant: 'destructive' });
+    }
+  };
+
+  const handleDeletePrize = async (id: number) => {
+    const token = localStorage.getItem('auth_token');
+    const res = await fetch(`/api/roulette/admin/prizes/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+    if (res.ok) {
+      setPrizes(prizes.filter(pr => pr.id !== id));
+      toast({ title: 'Lot supprimé' });
+    } else {
+      const err = await res.json();
+      toast({ title: 'Erreur', description: err.error, variant: 'destructive' });
     }
   };
   

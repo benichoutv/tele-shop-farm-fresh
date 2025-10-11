@@ -235,16 +235,23 @@ export default function Roulette() {
                 );
               })}
               
-              {/* Center circle with logo */}
-              <circle cx="200" cy="200" r="60" fill="white" stroke="#1a1a1a" strokeWidth="4"/>
+              {/* Center circle with logo (fully filled) */}
+              <defs>
+                <clipPath id="centerClip">
+                  <circle cx="200" cy="200" r="60" />
+                </clipPath>
+              </defs>
               <image
                 href={logo}
-                x="145"
-                y="145"
-                width="110"
-                height="110"
+                x="140"
+                y="140"
+                width="120"
+                height="120"
                 preserveAspectRatio="xMidYMid slice"
+                clipPath="url(#centerClip)"
               />
+              {/* Border ring over the logo */}
+              <circle cx="200" cy="200" r="60" fill="none" stroke="#1a1a1a" strokeWidth="4"/>
             </svg>
           ) : (
             <div className="w-full h-full flex items-center justify-center">

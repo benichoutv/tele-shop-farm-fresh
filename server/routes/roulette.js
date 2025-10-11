@@ -276,16 +276,8 @@ router.put('/admin/settings', authMiddleware, async (req, res) => {
 router.get('/admin/prizes', authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    const prizes = await db.all(`
-      SELECT * FROM roulette_prizes 
-      ORDER BY 
-        CASE tier 
-          WHEN 'jackpot' THEN 1
-          WHEN 'rare' THEN 2
-          WHEN 'commun' THEN 3
-          WHEN 'standard' THEN 4
-        END
-    `);
+    // Return all prizes regardless of any legacy 'tier' column
+    const prizes = await db.all('SELECT * FROM roulette_prizes ORDER BY id ASC');
     res.json(prizes);
   } catch (error) {
     console.error('Error fetching prizes:', error);
@@ -320,19 +312,24 @@ router.put('/admin/prizes/:id', authMiddleware, async (req, res) => {
   try {
     console.log(`📝 PUT /admin/prizes/${req.params.id} appelé`);
     const { id } = req.params;
-    const { name, color } = req.body;
-    console.log('Body:', { name, color });
-    
-    if (!name) {
-      return res.status(400).json({ error: 'Nom requis' });
+    const { name, probability, color } = req.body;
+    console.log('Body:', { name, probability, color });
+
+    // Build dynamic update based on provided fields
+    const fields = [] as string[];
+    const params = [] as any[];
+
+    if (name !== undefined) { fields.push('name = ?'); params.push(name); }
+    if (probability !== undefined) { fields.push('probability = ?'); params.push(probability); }
+    if (color !== undefined) { fields.push('color = ?'); params.push(color); }
+
+    if (fields.length === 0) {
+      return res.status(400).json({ error: 'Aucun champ à mettre à jour' });
     }
-    
+
     const db = await getDb();
-    await db.run(
-      'UPDATE roulette_prizes SET name = ?, color = ? WHERE id = ?',
-      [name, color || '#3b82f6', id]
-    );
-    
+    await db.run(`UPDATE roulette_prizes SET ${fields.join(', ')} WHERE id = ?`, [...params, id]);
+
     console.log('✅ Prize mis à jour');
     res.json({ success: true });
   } catch (error) {

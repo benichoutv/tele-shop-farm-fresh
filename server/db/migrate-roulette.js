@@ -37,19 +37,11 @@ async function migrateRoulette() {
       )
     `);
     
-    // Insert default prizes if table is empty
-    const existingPrizes = await db.get('SELECT COUNT(*) as count FROM roulette_prizes');
-    if (existingPrizes.count === 0) {
-      console.log('✅ Insertion des lots par défaut...');
-      await db.run('INSERT INTO roulette_prizes (name, probability, color) VALUES (?, ?, ?)', 
-        ['🎁 Cadeau surprise', 15, '#f59e0b']);
-      await db.run('INSERT INTO roulette_prizes (name, probability, color) VALUES (?, ?, ?)', 
-        ['💰 10% de réduction', 25, '#10b981']);
-      await db.run('INSERT INTO roulette_prizes (name, probability, color) VALUES (?, ?, ?)', 
-        ['🎉 Livraison gratuite', 20, '#3b82f6']);
-      await db.run('INSERT INTO roulette_prizes (name, probability, color) VALUES (?, ?, ?)', 
-        ['😢 Pas de chance', 40, '#ef4444']);
-    }
+  // Do not insert default prizes; start with an empty list so admin can add custom prizes
+  const existingPrizes = await db.get('SELECT COUNT(*) as count FROM roulette_prizes');
+  if (existingPrizes.count === 0) {
+    console.log('ℹ️ Aucune insertion de lots par défaut (démarrage à vide)');
+  }
     
     // Create roulette_codes table
     console.log('📋 Création de la table roulette_codes...');
