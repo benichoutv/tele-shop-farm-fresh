@@ -167,7 +167,7 @@ export default function AdminDashboard() {
         
         // Load roulette settings
         try {
-          const token = localStorage.getItem('adminToken');
+          const token = localStorage.getItem('auth_token');
           const rouletteSettingsRes = await fetch('/api/roulette/settings');
           const rouletteSettings = await rouletteSettingsRes.json();
           setRouletteActive(rouletteSettings.active || false);
@@ -483,7 +483,7 @@ export default function AdminDashboard() {
     
     try {
       setIsTogglingRoulette(true);
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('auth_token');
       console.log('📤 Envoi de la requête avec token:', !!token);
       
       const res = await fetch('/api/roulette/admin/settings', {
@@ -522,7 +522,7 @@ export default function AdminDashboard() {
     
     try {
       setIsUpdatingSettings(true);
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/roulette/admin/settings', {
         method: 'PUT',
         headers: {
@@ -574,7 +574,7 @@ export default function AdminDashboard() {
     
     try {
       setIsSavingPrizes(true);
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('auth_token');
       console.log('📤 Envoi des 4 lots en parallèle...');
       
       // Sauvegarder les 4 lots en parallèle
@@ -631,7 +631,7 @@ export default function AdminDashboard() {
     
     try {
       setIsGeneratingCodes(true);
-      const token = localStorage.getItem('adminToken');
+      const token = localStorage.getItem('auth_token');
       const res = await fetch('/api/roulette/admin/codes/generate', {
         method: 'POST',
         headers: {

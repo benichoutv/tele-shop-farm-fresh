@@ -128,6 +128,18 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   });
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+      localStorage.removeItem('auth_token');
+      
+      // Redirect to login if in admin area
+      if (window.location.pathname.startsWith('/admin')) {
+        window.location.href = '/admin/login';
+      }
+      
+      throw new Error('Session expirée, veuillez vous reconnecter');
+    }
+    
     const error = await response.json().catch(() => ({ error: 'Network error' }));
     throw new Error(error.error || 'Request failed');
   }
