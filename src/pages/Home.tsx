@@ -45,7 +45,7 @@ const Home = () => {
   const { toast } = useToast();
   const { addToCart, itemCount } = useCart();
   const [telegramUsername, setTelegramUsername] = useState("");
-  const [rouletteActive, setRouletteActive] = useState(false);
+  
 
   // Get Telegram username
   useEffect(() => {
@@ -90,10 +90,6 @@ const Home = () => {
         const settings = await settingsApi.getAll();
         setWelcomeMessage(settings.welcome_message || "Bienvenue sur l'app RSlive 👋");
 
-        // Load roulette status
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const rouletteStatus = await fetch(`${API_BASE_URL}/api/roulette/status`).then(r => r.json());
-        setRouletteActive(rouletteStatus.is_active);
 
         // Load products
         const productsData = await productsApi.getAll();
@@ -250,15 +246,6 @@ const Home = () => {
             <Info className="w-6 h-6" />
             <span className="text-xs font-medium">Info</span>
           </Link>
-          {rouletteActive && (
-            <Link
-              to="/roulette"
-              className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1"
-            >
-              <span className="text-2xl">🎰</span>
-              <span className="text-xs font-medium">Roulette</span>
-            </Link>
-          )}
           <Link
             to="/cart"
             className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1 relative"

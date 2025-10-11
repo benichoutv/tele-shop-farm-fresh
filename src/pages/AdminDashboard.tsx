@@ -48,7 +48,7 @@ interface AppSettings {
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<"products" | "settings" | "roulette">("products");
+  const [activeTab, setActiveTab] = useState<"products" | "settings">("products");
   const [showProductDialog, setShowProductDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -57,14 +57,6 @@ export default function AdminDashboard() {
   const [isSavingProduct, setIsSavingProduct] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   
-  // Roulette states
-  const [rouletteActive, setRouletteActive] = useState(false);
-  const [prizes, setPrizes] = useState<any[]>([]);
-  const [rouletteHistory, setRouletteHistory] = useState<any[]>([]);
-  const [showPrizeDialog, setShowPrizeDialog] = useState(false);
-  const [editingPrize, setEditingPrize] = useState<any>(null);
-  const [prizeForm, setPrizeForm] = useState({ name: '', type: 'discount', value: '', probability: 0 });
-  const [codeCount, setCodeCount] = useState(10);
 
   const [settings, setSettings] = useState<AppSettings>({
     welcomeMessage: "Bienvenue sur l'app RSlive 👋",
@@ -120,20 +112,6 @@ export default function AdminDashboard() {
           socialNetworks: settingsData.social_networks ? JSON.parse(settingsData.social_networks) : prev.socialNetworks
         }));
 
-        // Load roulette data
-        const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-        const token = localStorage.getItem('adminToken');
-        
-        const rouletteStatus = await fetch(`${API_BASE_URL}/api/roulette/status`).then(r => r.json());
-        setRouletteActive(rouletteStatus.is_active);
-
-        const prizesData = await fetch(`${API_BASE_URL}/api/roulette/prizes`).then(r => r.json());
-        setPrizes(prizesData);
-
-        const historyData = await fetch(`${API_BASE_URL}/api/roulette/history`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }).then(r => r.json());
-        setRouletteHistory(historyData);
       } catch (error) {
         console.error("Erreur chargement données:", error);
         toast({
@@ -497,19 +475,6 @@ export default function AdminDashboard() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
             )}
           </button>
-          <button
-            onClick={() => setActiveTab("roulette")}
-            className={`pb-3 px-3 md:px-4 font-medium transition-colors relative whitespace-nowrap text-sm md:text-base ${
-              activeTab === "roulette" 
-                ? "text-accent" 
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            🎰 Roulette
-            {activeTab === "roulette" && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-accent" />
-            )}
-          </button>
         </div>
 
         {/* Products Tab */}
@@ -784,258 +749,8 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Roulette Tab */}
-        {activeTab === "roulette" && (
-          <div className="space-y-8">
-            {/* Switch ON/OFF */}
-            <div className="glass-effect rounded-xl p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Activation de la roulette</h3>
-                  <p className="text-muted-foreground text-sm">
-                    Quand activée, l'icône 🎰 apparaît dans le menu des utilisateurs
-                  </p>
-                </div>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={rouletteActive}
-                    onChange={async (e) => {
-                      const newStatus = e.target.checked;
-                      setRouletteActive(newStatus);
-                      
-                      const token = localStorage.getItem('adminToken');
-                      const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                      await fetch(`${API_BASE_URL}/api/roulette/settings`, {
-                        method: 'PUT',
-                        headers: { 
-                          'Content-Type': 'application/json',
-                          'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ is_active: newStatus })
-                      });
-                      
-                      toast({ title: newStatus ? "Roulette activée" : "Roulette désactivée" });
-                    }}
-                    className="sr-only peer"
-                  />
-                  <div className="w-14 h-7 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-accent/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"></div>
-                </label>
-              </div>
-            </div>
-
-            {/* Gestion des lots */}
-            <div className="glass-effect rounded-xl p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-xl font-semibold">Lots disponibles</h3>
-                <Button onClick={() => {
-                  setEditingPrize(null);
-                  setPrizeForm({ name: '', type: 'discount', value: '', probability: 0 });
-                  setShowPrizeDialog(true);
-                }} className="gap-2">
-                  <Plus className="w-4 h-4" />
-                  Ajouter un lot
-                </Button>
-              </div>
-
-              <div className="space-y-3">
-                {prizes.map(prize => (
-                  <div key={prize.id} className="flex items-center justify-between p-4 bg-card/50 rounded-lg border border-border/30">
-                    <div>
-                      <p className="font-medium">{prize.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        Type: {prize.type} | Valeur: {prize.value || 'N/A'} | Probabilité: {prize.probability}%
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={() => {
-                          setEditingPrize(prize);
-                          setPrizeForm(prize);
-                          setShowPrizeDialog(true);
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button 
-                        variant="destructive" 
-                        size="sm"
-                        onClick={async () => {
-                          if (confirm('Supprimer ce lot ?')) {
-                            const token = localStorage.getItem('adminToken');
-                            const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                            await fetch(`${API_BASE_URL}/api/roulette/prizes/${prize.id}`, {
-                              method: 'DELETE',
-                              headers: { Authorization: `Bearer ${token}` }
-                            });
-                            setPrizes(prizes.filter(p => p.id !== prize.id));
-                            toast({ title: "Lot supprimé" });
-                          }
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <p className="text-sm text-muted-foreground mt-4">
-                Total des probabilités: {prizes.reduce((sum, p) => sum + p.probability, 0)}% (doit faire 100%)
-              </p>
-            </div>
-
-            {/* Génération de codes */}
-            <div className="glass-effect rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-4">Génération de codes</h3>
-              <div className="flex gap-3">
-                <Input
-                  type="number"
-                  value={codeCount}
-                  onChange={(e) => setCodeCount(parseInt(e.target.value) || 0)}
-                  placeholder="Nombre de codes"
-                  className="max-w-xs"
-                />
-                <Button onClick={async () => {
-                  const token = localStorage.getItem('adminToken');
-                  const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-                  const response = await fetch(`${API_BASE_URL}/api/roulette/codes/generate`, {
-                    method: 'POST',
-                    headers: { 
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ count: codeCount })
-                  });
-                  const data = await response.json();
-                  
-                  // Télécharger les codes en fichier texte
-                  const blob = new Blob([data.codes.join('\n')], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = `codes-roulette-${Date.now()}.txt`;
-                  a.click();
-                  
-                  toast({ title: `${codeCount} codes générés et téléchargés` });
-                }}>
-                  Générer et télécharger
-                </Button>
-              </div>
-            </div>
-
-            {/* Historique */}
-            <div className="glass-effect rounded-xl p-6">
-              <h3 className="text-xl font-semibold mb-4">Historique des tirages</h3>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-border/30">
-                      <th className="text-left p-3">Date</th>
-                      <th className="text-left p-3">Username</th>
-                      <th className="text-left p-3">Code</th>
-                      <th className="text-left p-3">Lot gagné</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rouletteHistory.map(entry => (
-                      <tr key={entry.id} className="border-b border-border/10">
-                        <td className="p-3">{new Date(entry.used_at).toLocaleString()}</td>
-                        <td className="p-3">@{entry.telegram_username}</td>
-                        <td className="p-3 font-mono">{entry.code}</td>
-                        <td className="p-3 font-medium">{entry.prize_name}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* Prize Dialog */}
-      <Dialog open={showPrizeDialog} onOpenChange={setShowPrizeDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editingPrize ? 'Modifier le lot' : 'Ajouter un lot'}</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Nom du lot</Label>
-              <Input 
-                value={prizeForm.name}
-                onChange={(e) => setPrizeForm({ ...prizeForm, name: e.target.value })}
-                placeholder="Ex: 10% de réduction"
-              />
-            </div>
-            <div>
-              <Label>Type</Label>
-              <select 
-                value={prizeForm.type}
-                onChange={(e) => setPrizeForm({ ...prizeForm, type: e.target.value })}
-                className="w-full p-2 border rounded bg-background"
-              >
-                <option value="discount">Réduction</option>
-                <option value="free_product">Produit offert</option>
-                <option value="gift">Cadeau</option>
-              </select>
-            </div>
-            <div>
-              <Label>Valeur (optionnel)</Label>
-              <Input 
-                value={prizeForm.value}
-                onChange={(e) => setPrizeForm({ ...prizeForm, value: e.target.value })}
-                placeholder="Ex: 10, product_id_123"
-              />
-            </div>
-            <div>
-              <Label>Probabilité (%)</Label>
-              <Input 
-                type="number"
-                value={prizeForm.probability}
-                onChange={(e) => setPrizeForm({ ...prizeForm, probability: parseInt(e.target.value) || 0 })}
-                placeholder="Ex: 50"
-              />
-            </div>
-            <Button onClick={async () => {
-              const token = localStorage.getItem('adminToken');
-              const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-              
-              if (editingPrize) {
-                await fetch(`${API_BASE_URL}/api/roulette/prizes/${editingPrize.id}`, {
-                  method: 'PUT',
-                  headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify(prizeForm)
-                });
-                setPrizes(prizes.map(p => p.id === editingPrize.id ? { ...p, ...prizeForm } : p));
-                toast({ title: "Lot modifié" });
-              } else {
-                const response = await fetch(`${API_BASE_URL}/api/roulette/prizes`, {
-                  method: 'POST',
-                  headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                  },
-                  body: JSON.stringify(prizeForm)
-                });
-                const newPrize = await response.json();
-                setPrizes([...prizes, newPrize]);
-                toast({ title: "Lot ajouté" });
-              }
-              
-              setShowPrizeDialog(false);
-            }} className="w-full">
-              {editingPrize ? 'Modifier' : 'Ajouter'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Product Dialog */}
       <Dialog open={showProductDialog} onOpenChange={setShowProductDialog}>
