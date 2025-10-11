@@ -8,7 +8,7 @@ import categoriesRouter from './routes/categories.js';
 import ordersRouter from './routes/orders.js';
 import settingsRouter from './routes/settings.js';
 import authRouter from './routes/auth.js';
-import rouletteRouter from './routes/roulette.js';
+// import rouletteRouter from './routes/roulette.js'; // Roulette disabled
 
 import { initDatabase } from './db/init.js';
 const __filename = fileURLToPath(import.meta.url);
@@ -32,7 +32,7 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/orders', ordersRouter);
 app.use('/api/settings', settingsRouter);
 app.use('/api/auth', authRouter);
-app.use('/api/roulette', rouletteRouter);
+// app.use('/api/roulette', rouletteRouter); // Roulette disabled
 
 
 // Health check

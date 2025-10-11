@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || 'INSECURE_DEV_SECRET';
 
-if (!JWT_SECRET) {
-  console.error('CRITICAL: JWT_SECRET is not set in environment variables!');
-  process.exit(1);
+if (!process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not set. Using insecure default. Set JWT_SECRET in .env to secure admin APIs.');
 }
 
 export function authMiddleware(req, res, next) {
