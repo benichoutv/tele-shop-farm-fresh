@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Home as HomeIcon, Info, ShoppingCart, Gamepad2 } from "lucide-react";
+import { Home as HomeIcon, Info, ShoppingCart } from "lucide-react";
 import { Link } from "react-router-dom";
 import logo from "@/assets/logo.png";
 import ProductModal from "@/components/ProductModal";
@@ -45,8 +45,6 @@ const Home = () => {
   const { toast } = useToast();
   const { addToCart, itemCount } = useCart();
   const [telegramUsername, setTelegramUsername] = useState("");
-  const [rouletteActive, setRouletteActive] = useState(false);
-  
 
   // Get Telegram username
   useEffect(() => {
@@ -90,16 +88,6 @@ const Home = () => {
         // Load settings
         const settings = await settingsApi.getAll();
         setWelcomeMessage(settings.welcome_message || "Bienvenue sur l'app RSlive 👋");
-        
-        // Check if roulette is active
-        try {
-          const rouletteRes = await fetch('/api/roulette/settings');
-          const rouletteSettings = await rouletteRes.json();
-          setRouletteActive(rouletteSettings.active || false);
-        } catch (err) {
-          console.error('Error loading roulette settings:', err);
-        }
-
 
         // Load products
         const productsData = await productsApi.getAll();
@@ -249,15 +237,6 @@ const Home = () => {
             <HomeIcon className="w-6 h-6" />
             <span className="text-xs font-semibold">Accueil</span>
           </Link>
-          {rouletteActive && (
-            <Link
-              to="/roulette"
-              className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1"
-            >
-              <Gamepad2 className="w-6 h-6" />
-              <span className="text-xs font-medium">Roulette</span>
-            </Link>
-          )}
           <Link
             to="/info"
             className="flex flex-col items-center text-muted-foreground hover:text-foreground transition-all duration-300 hover:scale-110 gap-1"
