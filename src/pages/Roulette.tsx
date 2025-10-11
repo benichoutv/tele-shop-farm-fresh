@@ -235,10 +235,10 @@ export default function Roulette() {
               <circle cx="200" cy="200" r="50" fill="white" stroke="#1a1a1a" strokeWidth="4"/>
               <image
                 href={logo}
-                x="160"
-                y="160"
-                width="80"
-                height="80"
+                x="150"
+                y="150"
+                width="100"
+                height="100"
                 preserveAspectRatio="xMidYMid meet"
               />
             </svg>

@@ -103,12 +103,6 @@ export default function AdminDashboard() {
     commun: '',
     standard: ''
   });
-  const [prizeColors, setPrizeColors] = useState({
-    jackpot: '#f59e0b',
-    rare: '#8b5cf6',
-    commun: '#10b981',
-    standard: '#3b82f6'
-  });
   
 
   const [settings, setSettings] = useState<AppSettings>({
@@ -184,15 +178,12 @@ export default function AdminDashboard() {
               const prizesData = await prizesRes.json();
               setPrizes(prizesData);
               
-              // Populate prize names and colors from loaded data
+              // Populate prize names from loaded data
               const newNames: any = {};
-              const newColors: any = {};
               prizesData.forEach((prize: Prize) => {
                 newNames[prize.tier] = prize.name;
-                newColors[prize.tier] = prize.color;
               });
               setPrizeNames(newNames);
-              setPrizeColors(newColors);
             }
             if (codesRes.ok) setCodes(await codesRes.json());
             if (spinsRes.ok) setSpins(await spinsRes.json());
@@ -555,7 +546,6 @@ export default function AdminDashboard() {
   const handleSaveAllPrizes = async () => {
     console.log('🎁 handleSaveAllPrizes appelé');
     console.log('Noms:', prizeNames);
-    console.log('Couleurs:', prizeColors);
     
     // Vérifier que tous les noms sont remplis
     const tiers: ('jackpot' | 'rare' | 'commun' | 'standard')[] = ['jackpot', 'rare', 'commun', 'standard'];
@@ -577,10 +567,9 @@ export default function AdminDashboard() {
       const token = localStorage.getItem('auth_token');
       console.log('📤 Envoi des 4 lots en parallèle...');
       
-      // Sauvegarder les 4 lots en parallèle
+      // Sauvegarder les 4 lots en parallèle (uniquement les noms)
       const savePromises = tiers.map(tier => {
         const name = prizeNames[tier];
-        const color = prizeColors[tier];
         const prize = prizes.find(p => p.tier === tier);
         
         if (prize) {
@@ -590,7 +579,7 @@ export default function AdminDashboard() {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({ name, color })
+            body: JSON.stringify({ name })
           });
         }
         return Promise.resolve(null);
@@ -907,21 +896,6 @@ export default function AdminDashboard() {
                       className="mt-1"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Couleur</Label>
-                    <div className="flex gap-2 mt-1">
-                      <input 
-                        type="color" 
-                        value={prizeColors.jackpot}
-                        onChange={(e) => setPrizeColors({...prizeColors, jackpot: e.target.value})}
-                        className="w-12 h-10 rounded cursor-pointer"
-                      />
-                      <div 
-                        className="flex-1 h-10 rounded border border-border/30"
-                        style={{ backgroundColor: prizeColors.jackpot }}
-                      />
-                    </div>
-                  </div>
                 </div>
 
                 {/* Rare - 10% */}
@@ -941,21 +915,6 @@ export default function AdminDashboard() {
                       onChange={(e) => setPrizeNames({...prizeNames, rare: e.target.value})}
                       className="mt-1"
                     />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Couleur</Label>
-                    <div className="flex gap-2 mt-1">
-                      <input 
-                        type="color" 
-                        value={prizeColors.rare}
-                        onChange={(e) => setPrizeColors({...prizeColors, rare: e.target.value})}
-                        className="w-12 h-10 rounded cursor-pointer"
-                      />
-                      <div 
-                        className="flex-1 h-10 rounded border border-border/30"
-                        style={{ backgroundColor: prizeColors.rare }}
-                      />
-                    </div>
                   </div>
                 </div>
 
@@ -977,21 +936,6 @@ export default function AdminDashboard() {
                       className="mt-1"
                     />
                   </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Couleur</Label>
-                    <div className="flex gap-2 mt-1">
-                      <input 
-                        type="color" 
-                        value={prizeColors.commun}
-                        onChange={(e) => setPrizeColors({...prizeColors, commun: e.target.value})}
-                        className="w-12 h-10 rounded cursor-pointer"
-                      />
-                      <div 
-                        className="flex-1 h-10 rounded border border-border/30"
-                        style={{ backgroundColor: prizeColors.commun }}
-                      />
-                    </div>
-                  </div>
                 </div>
 
                 {/* Standard - 50% */}
@@ -1011,21 +955,6 @@ export default function AdminDashboard() {
                       onChange={(e) => setPrizeNames({...prizeNames, standard: e.target.value})}
                       className="mt-1"
                     />
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Couleur</Label>
-                    <div className="flex gap-2 mt-1">
-                      <input 
-                        type="color" 
-                        value={prizeColors.standard}
-                        onChange={(e) => setPrizeColors({...prizeColors, standard: e.target.value})}
-                        className="w-12 h-10 rounded cursor-pointer"
-                      />
-                      <div 
-                        className="flex-1 h-10 rounded border border-border/30"
-                        style={{ backgroundColor: prizeColors.standard }}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
