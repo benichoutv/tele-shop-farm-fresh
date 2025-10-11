@@ -70,6 +70,29 @@ export async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS roulette_settings (
+      id INTEGER PRIMARY KEY DEFAULT 1,
+      is_active BOOLEAN DEFAULT FALSE,
+      CHECK (id = 1)
+    );
+
+    CREATE TABLE IF NOT EXISTS roulette_prizes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      value TEXT,
+      probability INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS roulette_spins (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      code TEXT UNIQUE NOT NULL,
+      prize_id INTEGER REFERENCES roulette_prizes(id),
+      telegram_username TEXT NOT NULL,
+      used_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Insert default settings if not exists
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('welcome_message', 'Bienvenue sur l''app RSLiv'),
@@ -78,6 +101,16 @@ export async function initDatabase() {
       ('facebook_url', ''),
       ('instagram_url', ''),
       ('tiktok_url', '');
+
+    -- Initialiser la configuration de la roulette par défaut
+    INSERT OR IGNORE INTO roulette_settings (id, is_active) VALUES (1, FALSE);
+
+    -- Lots par défaut (exemples)
+    INSERT OR IGNORE INTO roulette_prizes (id, name, type, value, probability) VALUES
+      (1, '5% de réduction', 'discount', '5', 50),
+      (2, '10% de réduction', 'discount', '10', 30),
+      (3, 'Produit offert', 'free_product', '', 15),
+      (4, '20% de réduction', 'discount', '20', 5);
 
   `);
   // Ensure default admin user exists with a valid bcrypt hash
