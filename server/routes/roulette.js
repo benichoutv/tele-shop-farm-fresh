@@ -7,10 +7,12 @@ const router = express.Router();
 // Get roulette settings (public)
 router.get('/settings', async (req, res) => {
   try {
+    console.log('📖 GET /settings appelé');
     const db = await getDb();
     const settings = await db.get('SELECT * FROM roulette_settings WHERE id = 1');
     
     if (!settings) {
+      console.log('⚠️ Aucun settings trouvé, retour des défauts');
       return res.json({ 
         active: false,
         max_spins_per_user: 1,
@@ -18,9 +20,11 @@ router.get('/settings', async (req, res) => {
       });
     }
     
-    res.json(settings);
+    console.log('✅ Settings trouvés:', settings);
+    // Force require_code à true
+    res.json({ ...settings, require_code: true });
   } catch (error) {
-    console.error('Error fetching roulette settings:', error);
+    console.error('❌ Error fetching roulette settings:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -171,17 +175,21 @@ router.post('/spin', async (req, res) => {
 // Update roulette settings
 router.put('/admin/settings', authMiddleware, async (req, res) => {
   try {
-    const { active, max_spins_per_user, require_code } = req.body;
+    console.log('📝 PUT /admin/settings appelé');
+    console.log('Body reçu:', req.body);
+    const { active, max_spins_per_user } = req.body;
     
     const db = await getDb();
+    // Force require_code à true (toujours requis)
     await db.run(
-      'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = ? WHERE id = 1',
-      [active ? 1 : 0, max_spins_per_user, require_code ? 1 : 0]
+      'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = 1 WHERE id = 1',
+      [active ? 1 : 0, max_spins_per_user]
     );
     
+    console.log('✅ Settings mis à jour');
     res.json({ success: true });
   } catch (error) {
-    console.error('Error updating settings:', error);
+    console.error('❌ Error updating settings:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -232,8 +240,10 @@ router.post('/admin/prizes', authMiddleware, async (req, res) => {
 // Update prize (name and color only, tier and probability are fixed)
 router.put('/admin/prizes/:id', authMiddleware, async (req, res) => {
   try {
+    console.log(`📝 PUT /admin/prizes/${req.params.id} appelé`);
     const { id } = req.params;
     const { name, color } = req.body;
+    console.log('Body:', { name, color });
     
     if (!name) {
       return res.status(400).json({ error: 'Nom requis' });
@@ -245,9 +255,10 @@ router.put('/admin/prizes/:id', authMiddleware, async (req, res) => {
       [name, color || '#3b82f6', id]
     );
     
+    console.log('✅ Prize mis à jour');
     res.json({ success: true });
   } catch (error) {
-    console.error('Error updating prize:', error);
+    console.error('❌ Error updating prize:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });
@@ -270,7 +281,9 @@ router.delete('/admin/prizes/:id', authMiddleware, async (req, res) => {
 // Generate codes
 router.post('/admin/codes/generate', authMiddleware, async (req, res) => {
   try {
+    console.log('🎟️ POST /admin/codes/generate appelé');
     const { count } = req.body;
+    console.log('Count demandé:', count);
     
     if (!count || count < 1 || count > 100) {
       return res.status(400).json({ error: 'Le nombre doit être entre 1 et 100' });
@@ -288,9 +301,10 @@ router.post('/admin/codes/generate', authMiddleware, async (req, res) => {
       codes.push(code);
     }
     
+    console.log(`✅ ${codes.length} codes générés`);
     res.json({ codes });
   } catch (error) {
-    console.error('Error generating codes:', error);
+    console.error('❌ Error generating codes:', error);
     res.status(500).json({ error: 'Erreur serveur' });
   }
 });

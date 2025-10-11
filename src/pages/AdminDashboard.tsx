@@ -86,12 +86,15 @@ export default function AdminDashboard() {
   
   // Roulette states
   const [rouletteActive, setRouletteActive] = useState(false);
-  const [requireCode, setRequireCode] = useState(true);
   const [maxSpins, setMaxSpins] = useState(1);
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [codes, setCodes] = useState<RouletteCode[]>([]);
   const [spins, setSpins] = useState<RouletteSpin[]>([]);
   const [codeCount, setCodeCount] = useState(10);
+  const [isTogglingRoulette, setIsTogglingRoulette] = useState(false);
+  const [isSavingPrizes, setIsSavingPrizes] = useState(false);
+  const [isGeneratingCodes, setIsGeneratingCodes] = useState(false);
+  const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
   
   // Individual prize states for each tier
   const [prizeNames, setPrizeNames] = useState({
@@ -168,7 +171,6 @@ export default function AdminDashboard() {
           const rouletteSettingsRes = await fetch('/api/roulette/settings');
           const rouletteSettings = await rouletteSettingsRes.json();
           setRouletteActive(rouletteSettings.active || false);
-          setRequireCode(rouletteSettings.require_code !== undefined ? rouletteSettings.require_code : true);
           setMaxSpins(rouletteSettings.max_spins_per_user || 1);
           
           if (token) {
@@ -476,29 +478,50 @@ export default function AdminDashboard() {
   
   // Roulette handlers
   const handleToggleRoulette = async (active: boolean) => {
+    console.log('🎰 handleToggleRoulette appelé avec:', active);
+    if (isTogglingRoulette) return;
+    
     try {
+      setIsTogglingRoulette(true);
       const token = localStorage.getItem('adminToken');
+      console.log('📤 Envoi de la requête avec token:', !!token);
+      
       const res = await fetch('/api/roulette/admin/settings', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ active, max_spins_per_user: maxSpins, require_code: requireCode })
+        body: JSON.stringify({ active, max_spins_per_user: maxSpins, require_code: true })
       });
+      
+      console.log('📥 Réponse reçue, status:', res.status);
       
       if (res.ok) {
         setRouletteActive(active);
-        toast({ title: active ? "✅ Roulette activée" : "❌ Roulette désactivée" });
+        toast({ 
+          title: active ? "✅ Roulette activée" : "❌ Roulette désactivée",
+          description: active ? "L'icône est maintenant visible" : "L'icône est masquée"
+        });
+      } else {
+        const error = await res.json();
+        console.error('❌ Erreur API:', error);
+        toast({ title: "Erreur", description: error.error || "Erreur inconnue", variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error updating roulette:', error);
-      toast({ title: "Erreur", variant: "destructive" });
+      console.error('❌ Erreur handleToggleRoulette:', error);
+      toast({ title: "Erreur", description: "Impossible de modifier la roulette", variant: "destructive" });
+    } finally {
+      setIsTogglingRoulette(false);
     }
   };
   
   const handleUpdateRouletteSettings = async () => {
+    console.log('⚙️ handleUpdateRouletteSettings appelé, maxSpins:', maxSpins);
+    if (isUpdatingSettings) return;
+    
     try {
+      setIsUpdatingSettings(true);
       const token = localStorage.getItem('adminToken');
       const res = await fetch('/api/roulette/admin/settings', {
         method: 'PUT',
@@ -509,63 +532,105 @@ export default function AdminDashboard() {
         body: JSON.stringify({ 
           active: rouletteActive, 
           max_spins_per_user: maxSpins, 
-          require_code: requireCode 
+          require_code: true 
         })
       });
       
+      console.log('📥 Réponse settings, status:', res.status);
+      
       if (res.ok) {
         toast({ title: "✅ Paramètres sauvegardés" });
+      } else {
+        const error = await res.json();
+        toast({ title: "Erreur", description: error.error, variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error updating settings:', error);
-      toast({ title: "Erreur", variant: "destructive" });
+      console.error('❌ Error updating settings:', error);
+      toast({ title: "Erreur", description: "Impossible de sauvegarder", variant: "destructive" });
+    } finally {
+      setIsUpdatingSettings(false);
     }
   };
   
-  const handleSavePrize = async (tier: 'jackpot' | 'rare' | 'commun' | 'standard') => {
-    const name = prizeNames[tier];
-    const color = prizeColors[tier];
+  const handleSaveAllPrizes = async () => {
+    console.log('🎁 handleSaveAllPrizes appelé');
+    console.log('Noms:', prizeNames);
+    console.log('Couleurs:', prizeColors);
     
-    if (!name.trim()) {
-      toast({ title: "Veuillez entrer un nom de lot", variant: "destructive" });
+    // Vérifier que tous les noms sont remplis
+    const tiers: ('jackpot' | 'rare' | 'commun' | 'standard')[] = ['jackpot', 'rare', 'commun', 'standard'];
+    const emptyTiers = tiers.filter(tier => !prizeNames[tier]?.trim());
+    
+    if (emptyTiers.length > 0) {
+      toast({ 
+        title: "Veuillez remplir tous les lots", 
+        description: `Lots manquants: ${emptyTiers.join(', ')}`,
+        variant: "destructive" 
+      });
       return;
     }
     
+    if (isSavingPrizes) return;
+    
     try {
+      setIsSavingPrizes(true);
       const token = localStorage.getItem('adminToken');
-      const prize = prizes.find(p => p.tier === tier);
+      console.log('📤 Envoi des 4 lots en parallèle...');
       
-      if (prize) {
-        // Update existing prize
-        const res = await fetch(`/api/roulette/admin/prizes/${prize.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          },
-          body: JSON.stringify({ name, color })
-        });
+      // Sauvegarder les 4 lots en parallèle
+      const savePromises = tiers.map(tier => {
+        const name = prizeNames[tier];
+        const color = prizeColors[tier];
+        const prize = prizes.find(p => p.tier === tier);
         
-        if (res.ok) {
-          // Reload prizes
-          const prizesRes = await fetch('/api/roulette/admin/prizes', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        if (prize) {
+          return fetch(`/api/roulette/admin/prizes/${prize.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name, color })
           });
-          if (prizesRes.ok) {
-            const prizesData = await prizesRes.json();
-            setPrizes(prizesData);
-          }
-          toast({ title: `✅ Lot ${tier} sauvegardé` });
         }
+        return Promise.resolve(null);
+      });
+      
+      const results = await Promise.all(savePromises);
+      console.log('📥 Résultats:', results.map(r => r?.status));
+      
+      const allOk = results.every(r => r === null || r.ok);
+      
+      if (allOk) {
+        // Reload prizes
+        const prizesRes = await fetch('/api/roulette/admin/prizes', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (prizesRes.ok) {
+          const prizesData = await prizesRes.json();
+          setPrizes(prizesData);
+        }
+        toast({ 
+          title: "✅ Tous les lots sauvegardés", 
+          description: "Les 4 niveaux ont été mis à jour"
+        });
+      } else {
+        toast({ title: "Erreur partielle", description: "Certains lots n'ont pas été sauvegardés", variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error saving prize:', error);
-      toast({ title: "Erreur", variant: "destructive" });
+      console.error('❌ Error saving prizes:', error);
+      toast({ title: "Erreur", description: "Impossible de sauvegarder les lots", variant: "destructive" });
+    } finally {
+      setIsSavingPrizes(false);
     }
   };
   
   const handleGenerateCodes = async () => {
+    console.log('🎟️ handleGenerateCodes appelé, count:', codeCount);
+    if (isGeneratingCodes) return;
+    
     try {
+      setIsGeneratingCodes(true);
       const token = localStorage.getItem('adminToken');
       const res = await fetch('/api/roulette/admin/codes/generate', {
         method: 'POST',
@@ -576,8 +641,12 @@ export default function AdminDashboard() {
         body: JSON.stringify({ count: codeCount })
       });
       
+      console.log('📥 Réponse génération codes, status:', res.status);
+      
       if (res.ok) {
         const data = await res.json();
+        console.log('✅ Codes générés:', data.codes.length);
+        
         // Reload codes
         const codesRes = await fetch('/api/roulette/admin/codes', {
           headers: { 'Authorization': `Bearer ${token}` }
@@ -585,13 +654,18 @@ export default function AdminDashboard() {
         if (codesRes.ok) setCodes(await codesRes.json());
         
         toast({ 
-          title: "✅ Codes générés", 
-          description: `${data.codes.length} codes créés` 
+          title: "✅ Codes générés avec succès", 
+          description: `${data.codes.length} codes créés et prêts à l'emploi` 
         });
+      } else {
+        const error = await res.json();
+        toast({ title: "Erreur", description: error.error, variant: "destructive" });
       }
     } catch (error) {
-      console.error('Error generating codes:', error);
-      toast({ title: "Erreur", variant: "destructive" });
+      console.error('❌ Error generating codes:', error);
+      toast({ title: "Erreur", description: "Impossible de générer les codes", variant: "destructive" });
+    } finally {
+      setIsGeneratingCodes(false);
     }
   };
 
@@ -780,7 +854,8 @@ export default function AdminDashboard() {
                 </div>
                 <Switch 
                   checked={rouletteActive} 
-                  onCheckedChange={(checked) => handleToggleRoulette(checked)} 
+                  onCheckedChange={(checked) => handleToggleRoulette(checked)}
+                  disabled={isTogglingRoulette}
                 />
               </div>
               <div className="space-y-3 pt-4 border-t border-border/30">
@@ -794,12 +869,12 @@ export default function AdminDashboard() {
                     min={1} 
                   />
                 </div>
-                <div className="flex items-center justify-between">
-                  <Label>Nécessite code</Label>
-                  <Switch checked={requireCode} onCheckedChange={setRequireCode} />
-                </div>
-                <Button onClick={handleUpdateRouletteSettings} className="w-full">
-                  Sauvegarder les paramètres
+                <Button 
+                  onClick={handleUpdateRouletteSettings} 
+                  className="w-full"
+                  disabled={isUpdatingSettings}
+                >
+                  {isUpdatingSettings ? "Sauvegarde..." : "Sauvegarder les paramètres"}
                 </Button>
               </div>
             </div>
@@ -847,13 +922,6 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => handleSavePrize('jackpot')} 
-                    className="w-full"
-                    size="sm"
-                  >
-                    Sauvegarder
-                  </Button>
                 </div>
 
                 {/* Rare - 10% */}
@@ -889,13 +957,6 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => handleSavePrize('rare')} 
-                    className="w-full"
-                    size="sm"
-                  >
-                    Sauvegarder
-                  </Button>
                 </div>
 
                 {/* Commun - 35% */}
@@ -931,13 +992,6 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => handleSavePrize('commun')} 
-                    className="w-full"
-                    size="sm"
-                  >
-                    Sauvegarder
-                  </Button>
                 </div>
 
                 {/* Standard - 50% */}
@@ -973,15 +1027,16 @@ export default function AdminDashboard() {
                       />
                     </div>
                   </div>
-                  <Button 
-                    onClick={() => handleSavePrize('standard')} 
-                    className="w-full"
-                    size="sm"
-                  >
-                    Sauvegarder
-                  </Button>
                 </div>
               </div>
+              
+              <Button 
+                onClick={handleSaveAllPrizes} 
+                className="w-full btn-primary"
+                disabled={isSavingPrizes}
+              >
+                {isSavingPrizes ? "Sauvegarde en cours..." : "💾 Sauvegarder tous les lots"}
+              </Button>
             </div>
             
             {/* Codes Section */}
