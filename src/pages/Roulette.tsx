@@ -41,7 +41,10 @@ export default function Roulette() {
 
     fetch('/api/roulette/prizes')
       .then(res => res.json())
-      .then(data => setPrizes(data))
+      .then(data => {
+        console.log('📦 Prizes loaded:', data);
+        setPrizes(data);
+      })
       .catch(err => console.error('Error loading prizes:', err));
   }, []);
 
@@ -166,19 +169,20 @@ export default function Roulette() {
           
           {/* Wheel container */}
           <div className="relative w-full aspect-square">
-            <svg
-              viewBox="0 0 400 400"
-              className="w-full h-full drop-shadow-2xl"
-              style={{
-                transform: `rotate(${rotation}deg)`,
-                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
-              }}
-            >
-              {/* Background circle */}
-              <circle cx="200" cy="200" r="190" fill="white" stroke="#1a1a1a" strokeWidth="8"/>
-              
-              {/* Prize segments */}
-              {prizes.map((prize, index) => {
+            {prizes.length > 0 ? (
+              <svg
+                viewBox="0 0 400 400"
+                className="w-full h-full drop-shadow-2xl"
+                style={{
+                  transform: `rotate(${rotation}deg)`,
+                  transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+                }}
+              >
+                {/* Background circle */}
+                <circle cx="200" cy="200" r="190" fill="white" stroke="#1a1a1a" strokeWidth="8"/>
+                
+                {/* Prize segments */}
+                {prizes.map((prize, index) => {
                 const segmentAngle = 360 / prizes.length;
                 const startAngle = index * segmentAngle - 90; // -90 to start at top
                 const endAngle = startAngle + segmentAngle;
@@ -232,16 +236,21 @@ export default function Roulette() {
               })}
               
               {/* Center circle with logo */}
-              <circle cx="200" cy="200" r="50" fill="white" stroke="#1a1a1a" strokeWidth="4"/>
+              <circle cx="200" cy="200" r="60" fill="white" stroke="#1a1a1a" strokeWidth="4"/>
               <image
                 href={logo}
-                x="150"
-                y="150"
-                width="100"
-                height="100"
-                preserveAspectRatio="xMidYMid meet"
+                x="145"
+                y="145"
+                width="110"
+                height="110"
+                preserveAspectRatio="xMidYMid slice"
               />
             </svg>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <p className="text-muted-foreground">Chargement de la roulette...</p>
+            </div>
+          )}
           </div>
         </div>
 
