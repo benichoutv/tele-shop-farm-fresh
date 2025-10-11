@@ -52,6 +52,7 @@ interface Prize {
   name: string;
   probability: number;
   color: string;
+  tier: 'jackpot' | 'rare' | 'commun' | 'standard';
 }
 
 interface RouletteCode {
@@ -91,7 +92,20 @@ export default function AdminDashboard() {
   const [codes, setCodes] = useState<RouletteCode[]>([]);
   const [spins, setSpins] = useState<RouletteSpin[]>([]);
   const [codeCount, setCodeCount] = useState(10);
-  const [editingPrize, setEditingPrize] = useState<Prize | null>(null);
+  
+  // Individual prize states for each tier
+  const [prizeNames, setPrizeNames] = useState({
+    jackpot: '',
+    rare: '',
+    commun: '',
+    standard: ''
+  });
+  const [prizeColors, setPrizeColors] = useState({
+    jackpot: '#f59e0b',
+    rare: '#8b5cf6',
+    commun: '#10b981',
+    standard: '#3b82f6'
+  });
   
 
   const [settings, setSettings] = useState<AppSettings>({
@@ -164,7 +178,20 @@ export default function AdminDashboard() {
               fetch('/api/roulette/admin/spins', { headers: { Authorization: `Bearer ${token}` } })
             ]);
             
-            if (prizesRes.ok) setPrizes(await prizesRes.json());
+            if (prizesRes.ok) {
+              const prizesData = await prizesRes.json();
+              setPrizes(prizesData);
+              
+              // Populate prize names and colors from loaded data
+              const newNames: any = {};
+              const newColors: any = {};
+              prizesData.forEach((prize: Prize) => {
+                newNames[prize.tier] = prize.name;
+                newColors[prize.tier] = prize.color;
+              });
+              setPrizeNames(newNames);
+              setPrizeColors(newColors);
+            }
             if (codesRes.ok) setCodes(await codesRes.json());
             if (spinsRes.ok) setSpins(await spinsRes.json());
           }
@@ -495,51 +522,44 @@ export default function AdminDashboard() {
     }
   };
   
-  const handleAddPrize = async () => {
-    const name = prompt("Nom du lot:");
-    const probability = prompt("Probabilité (nombre):");
-    const color = prompt("Couleur (hex):", "#3b82f6");
+  const handleSavePrize = async (tier: 'jackpot' | 'rare' | 'commun' | 'standard') => {
+    const name = prizeNames[tier];
+    const color = prizeColors[tier];
     
-    if (name && probability) {
-      try {
-        const token = localStorage.getItem('adminToken');
-        const res = await fetch('/api/roulette/admin/prizes', {
-          method: 'POST',
+    if (!name.trim()) {
+      toast({ title: "Veuillez entrer un nom de lot", variant: "destructive" });
+      return;
+    }
+    
+    try {
+      const token = localStorage.getItem('adminToken');
+      const prize = prizes.find(p => p.tier === tier);
+      
+      if (prize) {
+        // Update existing prize
+        const res = await fetch(`/api/roulette/admin/prizes/${prize.id}`, {
+          method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
           },
-          body: JSON.stringify({ name, probability: parseFloat(probability), color })
+          body: JSON.stringify({ name, color })
         });
         
         if (res.ok) {
-          const newPrize = await res.json();
-          setPrizes([...prizes, newPrize]);
-          toast({ title: "✅ Lot ajouté" });
+          // Reload prizes
+          const prizesRes = await fetch('/api/roulette/admin/prizes', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (prizesRes.ok) {
+            const prizesData = await prizesRes.json();
+            setPrizes(prizesData);
+          }
+          toast({ title: `✅ Lot ${tier} sauvegardé` });
         }
-      } catch (error) {
-        console.error('Error adding prize:', error);
-        toast({ title: "Erreur", variant: "destructive" });
-      }
-    }
-  };
-  
-  const handleDeletePrize = async (id: number) => {
-    if (!confirm("Supprimer ce lot ?")) return;
-    
-    try {
-      const token = localStorage.getItem('adminToken');
-      const res = await fetch(`/api/roulette/admin/prizes/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      
-      if (res.ok) {
-        setPrizes(prizes.filter(p => p.id !== id));
-        toast({ title: "✅ Lot supprimé" });
       }
     } catch (error) {
-      console.error('Error deleting prize:', error);
+      console.error('Error saving prize:', error);
       toast({ title: "Erreur", variant: "destructive" });
     }
   };
@@ -750,29 +770,268 @@ export default function AdminDashboard() {
         {activeTab === "roulette" && (
           <div className="max-w-4xl space-y-6">
             <h2 className="text-2xl font-semibold mb-6">🎰 Gestion de la Roulette</h2>
+            
+            {/* Settings Section */}
             <div className="glass-effect rounded-xl p-6 space-y-4">
               <div className="flex items-center justify-between">
-                <div><h3 className="font-semibold text-lg">Activer la roulette</h3><p className="text-sm text-muted-foreground">Afficher l'icône dans l'app</p></div>
-                <Switch checked={rouletteActive} onCheckedChange={handleToggleRoulette} />
+                <div>
+                  <h3 className="font-semibold text-lg">Activer la roulette</h3>
+                  <p className="text-sm text-muted-foreground">Afficher l'icône dans l'app</p>
+                </div>
+                <Switch 
+                  checked={rouletteActive} 
+                  onCheckedChange={(checked) => handleToggleRoulette(checked)} 
+                />
               </div>
               <div className="space-y-3 pt-4 border-t border-border/30">
-                <div className="flex items-center justify-between"><Label>Tours max/utilisateur</Label><Input type="number" value={maxSpins} onChange={(e) => setMaxSpins(parseInt(e.target.value) || 1)} className="w-20" min={1} /></div>
-                <div className="flex items-center justify-between"><Label>Nécessite code</Label><Switch checked={requireCode} onCheckedChange={setRequireCode} /></div>
-                <Button onClick={handleUpdateRouletteSettings} className="w-full">Sauvegarder</Button>
+                <div className="flex items-center justify-between">
+                  <Label>Tours max/utilisateur</Label>
+                  <Input 
+                    type="number" 
+                    value={maxSpins} 
+                    onChange={(e) => setMaxSpins(parseInt(e.target.value) || 1)} 
+                    className="w-20" 
+                    min={1} 
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <Label>Nécessite code</Label>
+                  <Switch checked={requireCode} onCheckedChange={setRequireCode} />
+                </div>
+                <Button onClick={handleUpdateRouletteSettings} className="w-full">
+                  Sauvegarder les paramètres
+                </Button>
               </div>
             </div>
+            
+            {/* Prizes Section - 4 Fixed Tiers */}
             <div className="glass-effect rounded-xl p-6 space-y-4">
-              <div className="flex items-center justify-between"><h3 className="font-semibold text-lg">Lots</h3><Button onClick={handleAddPrize} size="sm"><Plus className="w-4 h-4 mr-2" />Ajouter</Button></div>
-              <div className="space-y-2">{prizes.map(prize => (<div key={prize.id} className="flex items-center justify-between p-3 bg-card rounded-lg border border-border/30"><div className="flex items-center gap-3"><div className="w-8 h-8 rounded" style={{ backgroundColor: prize.color }}></div><div><p className="font-medium">{prize.name}</p><p className="text-sm text-muted-foreground">Prob: {prize.probability}</p></div></div><Button onClick={() => handleDeletePrize(prize.id)} variant="ghost" size="sm"><Trash2 className="w-4 h-4" /></Button></div>))}</div>
+              <div>
+                <h3 className="font-semibold text-lg mb-2">Configuration des lots</h3>
+                <p className="text-sm text-muted-foreground">
+                  4 niveaux fixes avec probabilités prédéfinies (total: 100%)
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Jackpot - 5% */}
+                <div className="card-shop p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🏆</span>
+                    <div>
+                      <h4 className="font-bold">Jackpot</h4>
+                      <p className="text-sm text-muted-foreground">5% de chance</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
+                    <Input 
+                      placeholder="Ex: iPhone 15 Pro" 
+                      value={prizeNames.jackpot}
+                      onChange={(e) => setPrizeNames({...prizeNames, jackpot: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Couleur</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input 
+                        type="color" 
+                        value={prizeColors.jackpot}
+                        onChange={(e) => setPrizeColors({...prizeColors, jackpot: e.target.value})}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <div 
+                        className="flex-1 h-10 rounded border border-border/30"
+                        style={{ backgroundColor: prizeColors.jackpot }}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleSavePrize('jackpot')} 
+                    className="w-full"
+                    size="sm"
+                  >
+                    Sauvegarder
+                  </Button>
+                </div>
+
+                {/* Rare - 10% */}
+                <div className="card-shop p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🎁</span>
+                    <div>
+                      <h4 className="font-bold">Rare</h4>
+                      <p className="text-sm text-muted-foreground">10% de chance</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
+                    <Input 
+                      placeholder="Ex: AirPods Pro" 
+                      value={prizeNames.rare}
+                      onChange={(e) => setPrizeNames({...prizeNames, rare: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Couleur</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input 
+                        type="color" 
+                        value={prizeColors.rare}
+                        onChange={(e) => setPrizeColors({...prizeColors, rare: e.target.value})}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <div 
+                        className="flex-1 h-10 rounded border border-border/30"
+                        style={{ backgroundColor: prizeColors.rare }}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleSavePrize('rare')} 
+                    className="w-full"
+                    size="sm"
+                  >
+                    Sauvegarder
+                  </Button>
+                </div>
+
+                {/* Commun - 35% */}
+                <div className="card-shop p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🎉</span>
+                    <div>
+                      <h4 className="font-bold">Commun</h4>
+                      <p className="text-sm text-muted-foreground">35% de chance</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
+                    <Input 
+                      placeholder="Ex: 10g gratuit" 
+                      value={prizeNames.commun}
+                      onChange={(e) => setPrizeNames({...prizeNames, commun: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Couleur</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input 
+                        type="color" 
+                        value={prizeColors.commun}
+                        onChange={(e) => setPrizeColors({...prizeColors, commun: e.target.value})}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <div 
+                        className="flex-1 h-10 rounded border border-border/30"
+                        style={{ backgroundColor: prizeColors.commun }}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleSavePrize('commun')} 
+                    className="w-full"
+                    size="sm"
+                  >
+                    Sauvegarder
+                  </Button>
+                </div>
+
+                {/* Standard - 50% */}
+                <div className="card-shop p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-2xl">🎯</span>
+                    <div>
+                      <h4 className="font-bold">Standard</h4>
+                      <p className="text-sm text-muted-foreground">50% de chance</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
+                    <Input 
+                      placeholder="Ex: 5€ de réduction" 
+                      value={prizeNames.standard}
+                      onChange={(e) => setPrizeNames({...prizeNames, standard: e.target.value})}
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Couleur</Label>
+                    <div className="flex gap-2 mt-1">
+                      <input 
+                        type="color" 
+                        value={prizeColors.standard}
+                        onChange={(e) => setPrizeColors({...prizeColors, standard: e.target.value})}
+                        className="w-12 h-10 rounded cursor-pointer"
+                      />
+                      <div 
+                        className="flex-1 h-10 rounded border border-border/30"
+                        style={{ backgroundColor: prizeColors.standard }}
+                      />
+                    </div>
+                  </div>
+                  <Button 
+                    onClick={() => handleSavePrize('standard')} 
+                    className="w-full"
+                    size="sm"
+                  >
+                    Sauvegarder
+                  </Button>
+                </div>
+              </div>
             </div>
+            
+            {/* Codes Section */}
             <div className="glass-effect rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-lg">Générer codes</h3>
-              <div className="flex gap-3"><Input type="number" value={codeCount} onChange={(e) => setCodeCount(parseInt(e.target.value) || 10)} className="flex-1" min={1} max={100} /><Button onClick={handleGenerateCodes}>Générer</Button></div>
-              <div className="max-h-60 overflow-y-auto space-y-1">{codes.slice(0, 20).map(code => (<div key={code.id} className="flex items-center justify-between p-2 bg-card rounded border border-border/30 text-sm"><span className="font-mono font-bold">{code.code}</span><span className={code.used ? "text-destructive" : "text-green-500"}>{code.used ? `✓ ${code.used_by}` : "• Dispo"}</span></div>))}</div>
+              <h3 className="font-semibold text-lg">Générer des codes</h3>
+              <div className="flex gap-3">
+                <Input 
+                  type="number" 
+                  value={codeCount} 
+                  onChange={(e) => setCodeCount(parseInt(e.target.value) || 10)} 
+                  className="flex-1" 
+                  min={1} 
+                  max={100} 
+                />
+                <Button onClick={handleGenerateCodes}>Générer</Button>
+              </div>
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {codes.slice(0, 20).map(code => (
+                  <div 
+                    key={code.id} 
+                    className="flex items-center justify-between p-2 bg-card rounded border border-border/30 text-sm"
+                  >
+                    <span className="font-mono font-bold">{code.code}</span>
+                    <span className={code.used ? "text-destructive" : "text-green-500"}>
+                      {code.used ? `✓ ${code.used_by}` : "• Dispo"}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
+            
+            {/* History Section */}
             <div className="glass-effect rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-lg">Historique</h3>
-              <div className="space-y-2">{spins.slice(0, 10).map(spin => (<div key={spin.id} className="flex justify-between p-3 bg-card rounded border border-border/30 text-sm"><div><p className="font-medium">{spin.username}</p><p className="text-muted-foreground">{spin.prize_name}</p></div><p className="text-xs text-muted-foreground">{new Date(spin.spin_date).toLocaleString()}</p></div>))}</div>
+              <h3 className="font-semibold text-lg">Historique des tours</h3>
+              <div className="space-y-2">
+                {spins.slice(0, 10).map(spin => (
+                  <div 
+                    key={spin.id} 
+                    className="flex justify-between p-3 bg-card rounded border border-border/30 text-sm"
+                  >
+                    <div>
+                      <p className="font-medium">{spin.username}</p>
+                      <p className="text-muted-foreground">{spin.prize_name}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      {new Date(spin.spin_date).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}

@@ -25,11 +25,11 @@ router.get('/settings', async (req, res) => {
   }
 });
 
-// Get all prizes (public)
+// Get all prizes (public) - ordered by probability DESC
 router.get('/prizes', async (req, res) => {
   try {
     const db = await getDb();
-    const prizes = await db.all('SELECT * FROM roulette_prizes ORDER BY probability DESC');
+    const prizes = await db.all('SELECT * FROM roulette_prizes ORDER BY probability ASC');
     res.json(prizes);
   } catch (error) {
     console.error('Error fetching prizes:', error);
@@ -186,11 +186,20 @@ router.put('/admin/settings', authMiddleware, async (req, res) => {
   }
 });
 
-// Get all prizes (admin)
+// Get all prizes (admin) - ordered by tier
 router.get('/admin/prizes', authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    const prizes = await db.all('SELECT * FROM roulette_prizes ORDER BY probability DESC');
+    const prizes = await db.all(`
+      SELECT * FROM roulette_prizes 
+      ORDER BY 
+        CASE tier 
+          WHEN 'jackpot' THEN 1
+          WHEN 'rare' THEN 2
+          WHEN 'commun' THEN 3
+          WHEN 'standard' THEN 4
+        END
+    `);
     res.json(prizes);
   } catch (error) {
     console.error('Error fetching prizes:', error);
@@ -220,16 +229,20 @@ router.post('/admin/prizes', authMiddleware, async (req, res) => {
   }
 });
 
-// Update prize
+// Update prize (name and color only, tier and probability are fixed)
 router.put('/admin/prizes/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, probability, color } = req.body;
+    const { name, color } = req.body;
+    
+    if (!name) {
+      return res.status(400).json({ error: 'Nom requis' });
+    }
     
     const db = await getDb();
     await db.run(
-      'UPDATE roulette_prizes SET name = ?, probability = ?, color = ? WHERE id = ?',
-      [name, probability, color, id]
+      'UPDATE roulette_prizes SET name = ?, color = ? WHERE id = ?',
+      [name, color || '#3b82f6', id]
     );
     
     res.json({ success: true });
