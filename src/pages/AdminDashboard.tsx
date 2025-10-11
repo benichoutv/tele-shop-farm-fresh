@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Edit, Trash2, Settings, LogOut, Video, Image, ArrowLeft, Menu } from "lucide-react";
+import { Plus, Edit, Trash2, Settings, LogOut, Video, Image, ArrowLeft, Menu, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -866,34 +866,52 @@ export default function AdminDashboard() {
                     className="hidden"
                     id="video-upload"
                   />
-                  <label
-                    htmlFor="video-upload"
-                    className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
-                  >
-                    {formData.videoFile ? (
+                  
+                  {/* Preview vidéo existante ou nouvelle */}
+                  {(formData.videoFile || (editingProduct && editingProduct.mediaType === "video")) ? (
+                    <div className="relative">
                       <video
-                        src={URL.createObjectURL(formData.videoFile)}
-                        className="w-full h-full object-cover rounded-lg"
+                        src={formData.videoFile ? URL.createObjectURL(formData.videoFile) : editingProduct?.mediaUrl}
+                        className="w-full h-48 object-cover rounded-lg border-2 border-accent/30"
                         controls
                       />
-                    ) : (editingProduct && editingProduct.mediaType === "video") ? (
-                      <video
-                        src={editingProduct.mediaUrl}
-                        className="w-full h-full object-cover rounded-lg"
-                        controls
-                      />
-                    ) : (
-                      <>
-                        <Video className="w-12 h-12 text-accent/60 mb-2" />
-                        <p className="text-muted-foreground text-sm text-center px-4">
-                          Cliquez pour uploader une vidéo
-                        </p>
-                        <p className="text-muted-foreground/60 text-xs mt-1">
-                          Max 50 Mo • MP4, WebM
-                        </p>
-                      </>
-                    )}
-                  </label>
+                      {/* Boutons de contrôle */}
+                      <div className="absolute top-2 right-2 flex gap-2">
+                        <label
+                          htmlFor="video-upload"
+                          className="btn-primary px-3 py-2 rounded-md cursor-pointer flex items-center gap-2 text-sm shadow-lg"
+                        >
+                          <Upload className="w-4 h-4" />
+                          Remplacer
+                        </label>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setFormData({ ...formData, videoFile: null });
+                            toast({ title: "Vidéo retirée" });
+                          }}
+                          className="shadow-lg"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Zone d'upload initiale */
+                    <label
+                      htmlFor="video-upload"
+                      className="flex flex-col items-center justify-center h-48 border-2 border-dashed border-accent/30 rounded-lg cursor-pointer hover:border-accent/50 transition-colors bg-input/30"
+                    >
+                      <Video className="w-12 h-12 text-accent/60 mb-2" />
+                      <p className="text-muted-foreground text-sm text-center px-4">
+                        Cliquez pour uploader une vidéo
+                      </p>
+                      <p className="text-muted-foreground/60 text-xs mt-1">
+                        Max 50 Mo • MP4, WebM
+                      </p>
+                    </label>
+                  )}
                 </div>
               </div>
             </div>

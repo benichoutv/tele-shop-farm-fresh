@@ -164,11 +164,33 @@ router.put('/:id', authMiddleware, upload.fields([
     
     // Handle new image upload
     if (req.files?.image) {
+      // 🔥 Supprimer l'ancienne image si elle existe
+      if (product.image_url) {
+        const oldImagePath = path.join(uploadsDir, path.basename(product.image_url));
+        try {
+          await fs.unlink(oldImagePath);
+          console.log(`✅ Ancienne image supprimée: ${path.basename(oldImagePath)}`);
+        } catch (err) {
+          console.error('⚠️ Erreur suppression ancienne image:', err);
+        }
+      }
+      
       imageUrl = `/uploads/${req.files.image[0].filename}`;
     }
     
     // Handle new video upload
     if (req.files?.video) {
+      // 🔥 Supprimer l'ancienne vidéo si elle existe
+      if (product.video_url) {
+        const oldVideoPath = path.join(uploadsDir, path.basename(product.video_url));
+        try {
+          await fs.unlink(oldVideoPath);
+          console.log(`✅ Ancienne vidéo supprimée: ${path.basename(oldVideoPath)}`);
+        } catch (err) {
+          console.error('⚠️ Erreur suppression ancienne vidéo:', err);
+        }
+      }
+      
       const videoFile = req.files.video[0];
       const convertedPath = await convertVideo(videoFile.path);
       videoUrl = `/uploads/${path.basename(convertedPath)}`;
@@ -204,8 +226,38 @@ router.put('/:id', authMiddleware, upload.fields([
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const db = await getDb();
-    await db.run('DELETE FROM products WHERE id = ?', [req.params.id]);
-    res.json({ message: 'Produit supprimé avec succès' });
+    const productId = req.params.id;
+    
+    // 1. Récupérer le produit pour obtenir les URLs des fichiers
+    const product = await db.get('SELECT image_url, video_url FROM products WHERE id = ?', [productId]);
+    
+    if (product) {
+      // 2. Supprimer les fichiers physiques
+      if (product.image_url) {
+        const imagePath = path.join(uploadsDir, path.basename(product.image_url));
+        try {
+          await fs.unlink(imagePath);
+          console.log(`✅ Image supprimée: ${path.basename(imagePath)}`);
+        } catch (err) {
+          console.error('⚠️ Erreur suppression image:', err);
+        }
+      }
+      
+      if (product.video_url) {
+        const videoPath = path.join(uploadsDir, path.basename(product.video_url));
+        try {
+          await fs.unlink(videoPath);
+          console.log(`✅ Vidéo supprimée: ${path.basename(videoPath)}`);
+        } catch (err) {
+          console.error('⚠️ Erreur suppression vidéo:', err);
+        }
+      }
+    }
+    
+    // 3. Supprimer le produit de la DB (les prix seront supprimés via CASCADE)
+    await db.run('DELETE FROM products WHERE id = ?', [productId]);
+    
+    res.json({ message: 'Produit et fichiers associés supprimés avec succès' });
   } catch (error) {
     console.error('Error deleting product:', error);
     res.status(500).json({ error: 'Erreur lors de la suppression du produit' });
