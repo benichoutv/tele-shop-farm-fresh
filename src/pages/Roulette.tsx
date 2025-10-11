@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/hooks/use-toast";
+import logo from "@/assets/logo.png";
 
 interface Prize {
   id: number;
@@ -160,7 +161,7 @@ export default function Roulette() {
           </div>
           
           <div
-            className="w-full aspect-square rounded-full border-8 border-card shadow-2xl overflow-hidden"
+            className="w-full aspect-square rounded-full border-8 border-card shadow-2xl overflow-hidden relative"
             style={{
               transform: `rotate(${rotation}deg)`,
               transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
@@ -191,11 +192,11 @@ export default function Roulette() {
                 </div>
               );
             })}
-          </div>
-
-          {/* Center circle */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-card rounded-full border-4 border-foreground shadow-lg flex items-center justify-center">
-            <span className="text-2xl">🎰</span>
+            
+            {/* Center circle with logo - rotates with wheel */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full border-4 border-foreground shadow-lg flex items-center justify-center p-3">
+              <img src={logo} alt="Logo" className="w-full h-full object-contain" />
+            </div>
           </div>
         </div>
 
