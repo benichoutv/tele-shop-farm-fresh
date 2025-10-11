@@ -13,6 +13,9 @@ interface Prize {
   color: string;
 }
 
+// Couleurs fixes harmonisées avec le logo de l'app
+const WHEEL_COLORS = ["#F59E0B", "#10B981", "#3B82F6", "#EF4444"];
+
 export default function Roulette() {
   const navigate = useNavigate();
   const [code, setCode] = useState("");
@@ -156,47 +159,89 @@ export default function Roulette() {
 
         {/* Roulette Wheel */}
         <div className="relative mb-8">
+          {/* Arrow indicator at the top */}
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-            <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[30px] border-l-transparent border-r-transparent border-t-red-500"></div>
+            <div className="w-0 h-0 border-l-[20px] border-r-[20px] border-t-[30px] border-l-transparent border-r-transparent border-t-red-500 drop-shadow-lg"></div>
           </div>
           
-          <div
-            className="w-full aspect-square rounded-full border-8 border-card shadow-2xl overflow-hidden relative"
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
-            }}
-          >
-            {prizes.map((prize, index) => {
-              const segmentAngle = 360 / prizes.length;
-              const rotation = index * segmentAngle;
+          {/* Wheel container */}
+          <div className="relative w-full aspect-square">
+            <svg
+              viewBox="0 0 400 400"
+              className="w-full h-full drop-shadow-2xl"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transition: isSpinning ? 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none'
+              }}
+            >
+              {/* Background circle */}
+              <circle cx="200" cy="200" r="190" fill="white" stroke="#1a1a1a" strokeWidth="8"/>
               
-              return (
-                <div
-                  key={prize.id}
-                  className="absolute w-full h-full"
-                  style={{
-                    transform: `rotate(${rotation}deg)`,
-                    transformOrigin: 'center',
-                    clipPath: `polygon(50% 50%, 50% 0%, ${50 + 50 * Math.sin((segmentAngle * Math.PI) / 180)}% ${50 - 50 * Math.cos((segmentAngle * Math.PI) / 180)}%)`
-                  }}
-                >
-                  <div
-                    className="w-full h-full flex items-start justify-center pt-12"
-                    style={{ backgroundColor: prize.color }}
-                  >
-                    <span className="text-white font-bold text-sm transform -rotate-90 origin-center">
+              {/* Prize segments */}
+              {prizes.map((prize, index) => {
+                const segmentAngle = 360 / prizes.length;
+                const startAngle = index * segmentAngle - 90; // -90 to start at top
+                const endAngle = startAngle + segmentAngle;
+                
+                // Convert angles to radians
+                const startRad = (startAngle * Math.PI) / 180;
+                const endRad = (endAngle * Math.PI) / 180;
+                
+                // Calculate path points
+                const x1 = 200 + 185 * Math.cos(startRad);
+                const y1 = 200 + 185 * Math.sin(startRad);
+                const x2 = 200 + 185 * Math.cos(endRad);
+                const y2 = 200 + 185 * Math.sin(endRad);
+                
+                const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+                
+                // Path for the segment
+                const pathData = `M 200 200 L ${x1} ${y1} A 185 185 0 ${largeArcFlag} 1 ${x2} ${y2} Z`;
+                
+                // Text position (middle of segment, at 60% radius)
+                const textAngle = startAngle + segmentAngle / 2;
+                const textRad = (textAngle * Math.PI) / 180;
+                const textX = 200 + 110 * Math.cos(textRad);
+                const textY = 200 + 110 * Math.sin(textRad);
+                
+                return (
+                  <g key={prize.id}>
+                    {/* Segment */}
+                    <path
+                      d={pathData}
+                      fill={WHEEL_COLORS[index % WHEEL_COLORS.length]}
+                      stroke="white"
+                      strokeWidth="3"
+                    />
+                    
+                    {/* Prize name */}
+                    <text
+                      x={textX}
+                      y={textY}
+                      fill="white"
+                      fontSize="16"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${textAngle + 90}, ${textX}, ${textY})`}
+                    >
                       {prize.name}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-            
-            {/* Center circle with logo - rotates with wheel */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-white rounded-full border-4 border-foreground shadow-lg flex items-center justify-center p-3">
-              <img src={logo} alt="Logo" className="w-full h-full object-contain" />
-            </div>
+                    </text>
+                  </g>
+                );
+              })}
+              
+              {/* Center circle with logo */}
+              <circle cx="200" cy="200" r="50" fill="white" stroke="#1a1a1a" strokeWidth="4"/>
+              <image
+                href={logo}
+                x="160"
+                y="160"
+                width="80"
+                height="80"
+                preserveAspectRatio="xMidYMid meet"
+              />
+            </svg>
           </div>
         </div>
 
@@ -233,7 +278,10 @@ export default function Roulette() {
             <p className="text-lg text-muted-foreground mb-4">Vous avez gagné:</p>
             <div
               className="text-3xl font-bold py-4 px-6 rounded-xl mx-auto inline-block"
-              style={{ backgroundColor: result.color, color: 'white' }}
+              style={{ 
+                backgroundColor: WHEEL_COLORS[prizes.findIndex(p => p.id === result.id) % WHEEL_COLORS.length], 
+                color: 'white' 
+              }}
             >
               {result.name}
             </div>
