@@ -243,10 +243,10 @@ export default function Roulette() {
               </defs>
               <image
                 href={logo}
-                x="140"
-                y="140"
-                width="120"
-                height="120"
+                x="135"
+                y="135"
+                width="130"
+                height="130"
                 preserveAspectRatio="xMidYMid slice"
                 clipPath="url(#centerClip)"
               />

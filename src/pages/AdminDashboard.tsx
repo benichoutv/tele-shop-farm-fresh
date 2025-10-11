@@ -927,104 +927,110 @@ export default function AdminDashboard() {
               </div>
             </div>
             
-            {/* Prizes Section - 4 Fixed Tiers */}
+            {/* Prizes Section - Dynamic CRUD */}
             <div className="glass-effect rounded-xl p-6 space-y-4">
               <div>
-                <h3 className="font-semibold text-lg mb-2">Configuration des lots</h3>
+                <h3 className="font-semibold text-lg mb-2">Gestion des lots</h3>
                 <p className="text-sm text-muted-foreground">
-                  4 niveaux fixes avec probabilités prédéfinies (total: 100%)
+                  Ajoutez autant de lots que vous voulez. La somme des probabilités doit faire 100%.
                 </p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Jackpot - 5% */}
-                <div className="card-shop p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🏆</span>
-                    <div>
-                      <h4 className="font-bold">Jackpot</h4>
-                      <p className="text-sm text-muted-foreground">5% de chance</p>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
-                    <Input 
-                      placeholder="Ex: iPhone 15 Pro" 
-                      value={prizeNames.jackpot}
-                      onChange={(e) => setPrizeNames({...prizeNames, jackpot: e.target.value})}
-                      className="mt-1"
-                    />
-                  </div>
+              {/* Add new prize form */}
+              <div className="card-shop p-4 space-y-3">
+                <h4 className="font-semibold text-sm">➕ Ajouter un lot</h4>
+                <div className="grid grid-cols-[1fr,auto] gap-3">
+                  <Input 
+                    placeholder="Nom du lot (ex: iPhone 15 Pro)" 
+                    value={newPrize.name}
+                    onChange={(e) => setNewPrize({...newPrize, name: e.target.value})}
+                  />
+                  <Input 
+                    type="number" 
+                    placeholder="%" 
+                    value={newPrize.probability}
+                    onChange={(e) => setNewPrize({...newPrize, probability: parseFloat(e.target.value) || 0})}
+                    className="w-24"
+                    min={0}
+                    max={100}
+                    step={0.1}
+                  />
                 </div>
-
-                {/* Rare - 10% */}
-                <div className="card-shop p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🎁</span>
-                    <div>
-                      <h4 className="font-bold">Rare</h4>
-                      <p className="text-sm text-muted-foreground">10% de chance</p>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
-                    <Input 
-                      placeholder="Ex: AirPods Pro" 
-                      value={prizeNames.rare}
-                      onChange={(e) => setPrizeNames({...prizeNames, rare: e.target.value})}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Commun - 35% */}
-                <div className="card-shop p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🎉</span>
-                    <div>
-                      <h4 className="font-bold">Commun</h4>
-                      <p className="text-sm text-muted-foreground">35% de chance</p>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
-                    <Input 
-                      placeholder="Ex: 10g gratuit" 
-                      value={prizeNames.commun}
-                      onChange={(e) => setPrizeNames({...prizeNames, commun: e.target.value})}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
-
-                {/* Standard - 50% */}
-                <div className="card-shop p-4 space-y-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-2xl">🎯</span>
-                    <div>
-                      <h4 className="font-bold">Standard</h4>
-                      <p className="text-sm text-muted-foreground">50% de chance</p>
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="text-xs text-muted-foreground">Nom du lot</Label>
-                    <Input 
-                      placeholder="Ex: 5€ de réduction" 
-                      value={prizeNames.standard}
-                      onChange={(e) => setPrizeNames({...prizeNames, standard: e.target.value})}
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
+                <Button 
+                  onClick={handleCreatePrize} 
+                  className="w-full"
+                  disabled={!newPrize.name.trim() || newPrize.probability <= 0}
+                >
+                  Ajouter
+                </Button>
               </div>
               
-              <Button 
-                onClick={handleSaveAllPrizes} 
-                className="w-full btn-primary"
-                disabled={isSavingPrizes}
-              >
-                {isSavingPrizes ? "Sauvegarde en cours..." : "💾 Sauvegarder tous les lots"}
-              </Button>
+              {/* List of existing prizes */}
+              <div className="space-y-2">
+                {prizes.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4">Aucun lot configuré</p>
+                ) : (
+                  prizes.map(prize => (
+                    <div 
+                      key={prize.id} 
+                      className="flex items-center gap-3 p-3 bg-card rounded border border-border/30"
+                    >
+                      <div className="flex-1 space-y-1">
+                        <Input 
+                          value={prize.name}
+                          onChange={(e) => {
+                            setPrizes(prizes.map(p => p.id === prize.id ? {...p, name: e.target.value} : p));
+                          }}
+                          className="font-medium"
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          type="number" 
+                          value={prize.probability}
+                          onChange={(e) => {
+                            setPrizes(prizes.map(p => p.id === prize.id ? {...p, probability: parseFloat(e.target.value) || 0} : p));
+                          }}
+                          className="w-24"
+                          min={0}
+                          max={100}
+                          step={0.1}
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleUpdatePrize(prize)}
+                        disabled={isSavingPrizes}
+                      >
+                        💾
+                      </Button>
+                      <Button 
+                        variant="destructive" 
+                        size="sm"
+                        onClick={() => handleDeletePrize(prize.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {/* Total probability check */}
+              {prizes.length > 0 && (
+                <div className="flex justify-between items-center p-3 bg-muted/30 rounded">
+                  <span className="font-semibold">Total des probabilités:</span>
+                  <span className={`font-bold text-lg ${
+                    Math.abs(prizes.reduce((sum, p) => sum + p.probability, 0) - 100) < 0.01 
+                      ? 'text-green-500' 
+                      : 'text-destructive'
+                  }`}>
+                    {prizes.reduce((sum, p) => sum + p.probability, 0).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
             
             {/* Codes Section */}

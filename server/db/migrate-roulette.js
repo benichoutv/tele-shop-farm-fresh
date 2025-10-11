@@ -37,11 +37,8 @@ async function migrateRoulette() {
       )
     `);
     
-  // Do not insert default prizes; start with an empty list so admin can add custom prizes
-  const existingPrizes = await db.get('SELECT COUNT(*) as count FROM roulette_prizes');
-  if (existingPrizes.count === 0) {
-    console.log('ℹ️ Aucune insertion de lots par défaut (démarrage à vide)');
-  }
+    // No default prizes inserted - admin will add custom prizes via the dashboard
+    console.log('ℹ️ Table roulette_prizes créée (vide par défaut)');
     
     // Create roulette_codes table
     console.log('📋 Création de la table roulette_codes...');
