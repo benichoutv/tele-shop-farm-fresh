@@ -9,6 +9,17 @@ router.get('/settings', async (req, res) => {
   try {
     console.log('📖 GET /settings appelé');
     const db = await getDb();
+
+    // Ensure table exists to avoid "no such table" errors
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS roulette_settings (
+        id INTEGER PRIMARY KEY,
+        active INTEGER DEFAULT 0,
+        max_spins_per_user INTEGER DEFAULT 1,
+        require_code INTEGER DEFAULT 1
+      )
+    `);
+
     const settings = await db.get('SELECT * FROM roulette_settings WHERE id = 1');
     
     if (!settings) {
@@ -180,13 +191,32 @@ router.put('/admin/settings', authMiddleware, async (req, res) => {
     const { active, max_spins_per_user } = req.body;
     
     const db = await getDb();
-    // Force require_code à true (toujours requis)
-    await db.run(
-      'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = 1 WHERE id = 1',
-      [active ? 1 : 0, max_spins_per_user]
-    );
+
+    // Ensure table exists
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS roulette_settings (
+        id INTEGER PRIMARY KEY,
+        active INTEGER DEFAULT 0,
+        max_spins_per_user INTEGER DEFAULT 1,
+        require_code INTEGER DEFAULT 1
+      )
+    `);
+
+    // Ensure row exists then update
+    const existing = await db.get('SELECT id FROM roulette_settings WHERE id = 1');
+    if (!existing) {
+      await db.run(
+        'INSERT INTO roulette_settings (id, active, max_spins_per_user, require_code) VALUES (1, ?, ?, 1)',
+        [active ? 1 : 0, (typeof max_spins_per_user === 'number' ? max_spins_per_user : 1)]
+      );
+    } else {
+      await db.run(
+        'UPDATE roulette_settings SET active = ?, max_spins_per_user = ?, require_code = 1 WHERE id = 1',
+        [active ? 1 : 0, (typeof max_spins_per_user === 'number' ? max_spins_per_user : 1)]
+      );
+    }
     
-    console.log('✅ Settings mis à jour');
+    console.log('✅ Settings mis à jour (auto-création OK)');
     res.json({ success: true });
   } catch (error) {
     console.error('❌ Error updating settings:', error);
