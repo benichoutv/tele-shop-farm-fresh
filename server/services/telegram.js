@@ -4,7 +4,10 @@ let bot = null;
 
 function getBot() {
   if (!bot && process.env.TELEGRAM_BOT_TOKEN) {
-    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: false });
+    bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { 
+      polling: false,
+      webHook: false
+    });
   }
   return bot;
 }
