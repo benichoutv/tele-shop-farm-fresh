@@ -70,6 +70,15 @@ export async function initDatabase() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS bot_buttons (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      emoji TEXT DEFAULT '',
+      url TEXT NOT NULL,
+      position INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    );
+
     -- Insert default settings if not exists
     INSERT OR IGNORE INTO settings (key, value) VALUES 
       ('welcome_message', 'Bienvenue sur l''app RSLiv'),
