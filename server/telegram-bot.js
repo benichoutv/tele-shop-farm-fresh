@@ -1,76 +1,114 @@
 import 'dotenv/config';
 import TelegramBot from 'node-telegram-bot-api';
 import { getDb } from './db/connection.js';
+import { initDatabase } from './db/init.js';
 
-const token = process.env.TELEGRAM_BOT_TOKEN;
-const appUrl = process.env.APP_BASE_URL;
+// Fonction principale asynchrone
+async function main() {
+  const token = process.env.TELEGRAM_BOT_TOKEN;
+  const appUrl = process.env.APP_BASE_URL;
 
-if (!token) {
-  console.error('❌ TELEGRAM_BOT_TOKEN manquant dans .env');
-  process.exit(1);
-}
-
-if (!appUrl) {
-  console.error('❌ APP_BASE_URL manquant dans .env');
-  process.exit(1);
-}
-
-// Créer le bot en mode polling (écoute active)
-const bot = new TelegramBot(token, { polling: true });
-
-console.log('✅ Bot RS-Liv démarré avec succès');
-console.log(`📱 URL de la mini-app : ${appUrl}`);
-
-// Vérification de l'admin
-const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID) || 0;
-
-function isAdmin(userId) {
-  if (ADMIN_ID === 0) {
-    console.warn('⚠️ TELEGRAM_ADMIN_ID non configuré dans .env');
-    return false;
+  if (!token) {
+    console.error('❌ TELEGRAM_BOT_TOKEN manquant dans .env');
+    console.error('📝 Ajoute TELEGRAM_BOT_TOKEN=ton_token dans le fichier .env');
+    process.exit(1);
   }
-  return userId === ADMIN_ID;
-}
 
-// Répondre à la commande /start
-bot.onText(/\/start/, async (msg) => {
-  const chatId = msg.chat.id;
-  const firstName = msg.from.first_name || '';
-  
+  if (!appUrl) {
+    console.error('❌ APP_BASE_URL manquant dans .env');
+    console.error('📝 Ajoute APP_BASE_URL=https://ton-domaine.com dans le fichier .env');
+    process.exit(1);
+  }
+
+  // Afficher la configuration DB
+  const dbType = process.env.DB_TYPE || 'sqlite';
+  const dbPath = process.env.DB_PATH || 'database.sqlite';
+  console.log(`🗄️ Base de données: ${dbType} (${dbType === 'sqlite' ? dbPath : 'PostgreSQL'})`);
+
+  // Initialiser la base de données (créer les tables si nécessaire)
   try {
-    // Récupérer les boutons personnalisés depuis la base de données
-    const db = await getDb();
-    const buttons = await db.all('SELECT * FROM bot_buttons ORDER BY position ASC');
+    await initDatabase();
+    console.log('✅ Base de données initialisée avec succès');
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'initialisation de la base de données:', error);
+    process.exit(1);
+  }
+
+  // Créer le bot en mode polling (écoute active)
+  const bot = new TelegramBot(token, { polling: true });
+
+  console.log('✅ Bot RS-Liv démarré avec succès');
+  console.log(`📱 URL de la mini-app : ${appUrl}`);
+
+  // Vérification de l'admin
+  const ADMIN_ID = parseInt(process.env.TELEGRAM_ADMIN_ID) || 0;
+  if (ADMIN_ID) {
+    console.log(`👤 Admin ID configuré: ${ADMIN_ID}`);
+  } else {
+    console.warn('⚠️ TELEGRAM_ADMIN_ID non configuré - les commandes admin ne fonctionneront pas');
+  }
+
+  function isAdmin(userId) {
+    return ADMIN_ID !== 0 && userId === ADMIN_ID;
+  }
+
+  // Répondre à la commande /start
+  bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    const firstName = msg.from.first_name || '';
     
-    // Construire le clavier inline
-    const keyboard = [
-      // Première ligne : bouton principal (web_app)
+    // Clavier par défaut avec seulement le bouton principal
+    const defaultKeyboard = [
       [{ text: '🛒 Ouvrir RSliv', web_app: { url: appUrl } }]
     ];
     
-    // Ajouter les boutons personnalisés (1 par ligne)
-    buttons.forEach(btn => {
-      keyboard.push([{
-        text: `${btn.emoji} ${btn.name}`,
-        url: btn.url
-      }]);
-    });
-    
-    await bot.sendMessage(
-      chatId,
-      `👋 Bonjour ${firstName} ! Bienvenue sur le bot officiel RSliv 🔥🍓\n\n📱 Ici, tu trouveras toutes nos infos, Livraison, actus et offres spéciales.\n\n⏰ Utilise /start pour afficher notre menu et passer commande facilement.\n\n🏠 Merci de faire confiance à RsLiv — Service rapide, discret & sécurisé.`,
-      {
-        reply_markup: { inline_keyboard: keyboard }
+    try {
+      // Récupérer les boutons personnalisés depuis la base de données
+      const db = await getDb();
+      const buttons = await db.all('SELECT * FROM bot_buttons ORDER BY position ASC');
+      
+      // Construire le clavier inline
+      const keyboard = [
+        // Première ligne : bouton principal (web_app)
+        [{ text: '🛒 Ouvrir RSliv', web_app: { url: appUrl } }]
+      ];
+      
+      // Ajouter les boutons personnalisés (1 par ligne)
+      buttons.forEach(btn => {
+        keyboard.push([{
+          text: `${btn.emoji} ${btn.name}`,
+          url: btn.url
+        }]);
+      });
+      
+      await bot.sendMessage(
+        chatId,
+        `👋 Bonjour ${firstName} ! Bienvenue sur le bot officiel RSliv 🔥🍓\n\n📱 Ici, tu trouveras toutes nos infos, Livraison, actus et offres spéciales.\n\n⏰ Utilise /start pour afficher notre menu et passer commande facilement.\n\n🏠 Merci de faire confiance à RsLiv — Service rapide, discret & sécurisé.`,
+        {
+          reply_markup: { inline_keyboard: keyboard }
+        }
+      );
+      console.log(`✅ Commande /start envoyée à ${msg.from.username || chatId} (${buttons.length} boutons personnalisés)`);
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'envoi du message /start:', error);
+      // Fallback: afficher au moins le bouton principal
+      try {
+        await bot.sendMessage(
+          chatId,
+          `👋 Bonjour ${firstName} ! Bienvenue sur le bot officiel RSliv 🔥🍓\n\n📱 Ici, tu trouveras toutes nos infos, Livraison, actus et offres spéciales.\n\n⏰ Utilise /start pour afficher notre menu et passer commande facilement.\n\n🏠 Merci de faire confiance à RsLiv — Service rapide, discret & sécurisé.`,
+          {
+            reply_markup: { inline_keyboard: defaultKeyboard }
+          }
+        );
+        console.log(`⚠️ Commande /start envoyée en mode fallback à ${msg.from.username || chatId}`);
+      } catch (fallbackError) {
+        console.error('❌ Erreur critique lors du fallback /start:', fallbackError);
       }
-    );
-    console.log(`✅ Commande /start envoyée à ${msg.from.username || chatId}`);
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi du message /start:', error);
-  }
-});
+    }
+  });
 
-// Commande /help
-bot.onText(/\/help/, async (msg) => {
+  // Commande /help
+  bot.onText(/\/help/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   
@@ -99,11 +137,11 @@ bot.onText(/\/help/, async (msg) => {
 3️⃣ Le bouton apparaît immédiatement dans /start
   `;
   
-  await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
-});
+    await bot.sendMessage(chatId, helpMessage, { parse_mode: 'Markdown' });
+  });
 
-// Commande /addbutton
-bot.onText(/\/addbutton/, async (msg) => {
+  // Commande /addbutton
+  bot.onText(/\/addbutton/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   
@@ -182,14 +220,14 @@ bot.onText(/\/addbutton/, async (msg) => {
   
   bot.on('message', responseHandler);
   
-  // Auto-nettoyage après 2 minutes
-  setTimeout(() => {
-    bot.removeListener('message', responseHandler);
-  }, 120000);
-});
+    // Auto-nettoyage après 2 minutes
+    setTimeout(() => {
+      bot.removeListener('message', responseHandler);
+    }, 120000);
+  });
 
-// Commande /listbuttons
-bot.onText(/\/listbuttons/, async (msg) => {
+  // Commande /listbuttons
+  bot.onText(/\/listbuttons/, async (msg) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   
@@ -222,14 +260,14 @@ bot.onText(/\/listbuttons/, async (msg) => {
     message += 'Exemple : `/removebutton 1`';
     
     await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
-  } catch (error) {
-    console.error('❌ Erreur listbuttons:', error);
-    await bot.sendMessage(chatId, '❌ Erreur lors de la récupération des boutons.');
-  }
-});
+    } catch (error) {
+      console.error('❌ Erreur listbuttons:', error);
+      await bot.sendMessage(chatId, '❌ Erreur lors de la récupération des boutons.');
+    }
+  });
 
-// Commande /removebutton
-bot.onText(/\/removebutton (.+)/, async (msg, match) => {
+  // Commande /removebutton
+  bot.onText(/\/removebutton (.+)/, async (msg, match) => {
   const chatId = msg.chat.id;
   const userId = msg.from.id;
   
@@ -264,50 +302,57 @@ bot.onText(/\/removebutton (.+)/, async (msg, match) => {
       `✅ Bouton #${buttonId} "${button.emoji} ${button.name}" supprimé avec succès !\n\nUtilise /start pour voir le résultat.`
     );
     console.log(`✅ Bouton supprimé par admin ${userId}: ${button.emoji} ${button.name}`);
-  } catch (error) {
-    console.error('❌ Erreur removebutton:', error);
-    await bot.sendMessage(chatId, '❌ Erreur lors de la suppression du bouton.');
-  }
-});
-
-// Répondre aux messages texte (autres que commandes)
-bot.on('message', async (msg) => {
-  // Ignorer toutes les commandes (déjà gérées par onText)
-  if (msg.text && msg.text.startsWith('/')) return;
-  
-  // Ignorer les médias
-  if (!msg.text) return;
-  
-  const chatId = msg.chat.id;
-  const userId = msg.from.id;
-  
-  try {
-    // Message différent selon si c'est l'admin ou un utilisateur
-    if (isAdmin(userId)) {
-      await bot.sendMessage(chatId, '💡 Utilise /help pour voir les commandes admin.');
-    } else {
-      await bot.sendMessage(chatId, '💡 Utilise /start pour afficher notre menu et passer commande facilement.');
+    } catch (error) {
+      console.error('❌ Erreur removebutton:', error);
+      await bot.sendMessage(chatId, '❌ Erreur lors de la suppression du bouton.');
     }
-    console.log(`ℹ️ Message d'aide envoyé à ${msg.from.username || chatId}`);
-  } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi du message d\'aide:', error);
-  }
-});
+  });
 
-// Gérer les erreurs de polling
-bot.on('polling_error', (error) => {
-  console.error('❌ Erreur de polling:', error.code, error.message);
-});
+  // Répondre aux messages texte (autres que commandes)
+  bot.on('message', async (msg) => {
+    // Ignorer toutes les commandes (déjà gérées par onText)
+    if (msg.text && msg.text.startsWith('/')) return;
+    
+    // Ignorer les médias
+    if (!msg.text) return;
+    
+    const chatId = msg.chat.id;
+    const userId = msg.from.id;
+    
+    try {
+      // Message différent selon si c'est l'admin ou un utilisateur
+      if (isAdmin(userId)) {
+        await bot.sendMessage(chatId, '💡 Utilise /help pour voir les commandes admin.');
+      } else {
+        await bot.sendMessage(chatId, '💡 Utilise /start pour afficher notre menu et passer commande facilement.');
+      }
+      console.log(`ℹ️ Message d'aide envoyé à ${msg.from.username || chatId}`);
+    } catch (error) {
+      console.error('❌ Erreur lors de l\'envoi du message d\'aide:', error);
+    }
+  });
 
-// Arrêt propre du bot
-process.on('SIGINT', () => {
-  console.log('\n⏹️ Arrêt du bot...');
-  bot.stopPolling();
-  process.exit(0);
-});
+  // Gérer les erreurs de polling
+  bot.on('polling_error', (error) => {
+    console.error('❌ Erreur de polling:', error.code, error.message);
+  });
 
-process.on('SIGTERM', () => {
-  console.log('\n⏹️ Arrêt du bot...');
-  bot.stopPolling();
-  process.exit(0);
+  // Arrêt propre du bot
+  process.on('SIGINT', () => {
+    console.log('\n⏹️ Arrêt du bot...');
+    bot.stopPolling();
+    process.exit(0);
+  });
+
+  process.on('SIGTERM', () => {
+    console.log('\n⏹️ Arrêt du bot...');
+    bot.stopPolling();
+    process.exit(0);
+  });
+}
+
+// Démarrer le bot
+main().catch(error => {
+  console.error('❌ Erreur fatale lors du démarrage du bot:', error);
+  process.exit(1);
 });
