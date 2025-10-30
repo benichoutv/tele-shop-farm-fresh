@@ -3,15 +3,15 @@ import path from 'path';
 import fs from 'fs/promises';
 
 export async function convertVideo(inputPath) {
-  const outputPath = inputPath.replace(path.extname(inputPath), '_720p.mp4');
+  const outputPath = inputPath.replace(path.extname(inputPath), '_1080p.mp4');
   
   return new Promise((resolve, reject) => {
     ffmpeg(inputPath)
       .outputOptions([
-        '-vf scale=-2:720',
+        '-vf scale=-2:1080',
         '-c:v libx264',
         '-profile:v main',
-        '-level 3.1',
+        '-level 4.0',
         '-preset medium',
         '-crf 24',
         '-c:a aac',

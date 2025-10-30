@@ -147,7 +147,7 @@ export default function AdminDashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
     setFormData({ ...formData, videoFile: file });
-    toast({ title: "Vidéo sélectionnée (sera convertie en 720p)" });
+    toast({ title: "Vidéo sélectionnée (sera convertie en 1080p Full HD)" });
   };
 
   const handleLogout = () => {
@@ -856,7 +856,7 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Label className="text-foreground">Vidéo (modale uniquement)</Label>
                 <p className="text-xs text-muted-foreground mb-1">
-                  Affichée dans la modale détail. Convertie auto en 720p (max 500 Mo)
+                  Affichée dans la modale détail. Convertie auto en 1080p Full HD (max 500 Mo)
                 </p>
                 <div className="relative">
                   <input
