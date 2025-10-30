@@ -12,10 +12,10 @@ export async function convertVideo(inputPath) {
         '-c:v libx264',
         '-profile:v main',
         '-level 4.0',
-        '-preset medium',
-        '-crf 24',
+        '-preset faster',
+        '-crf 26',
         '-c:a aac',
-        '-b:a 160k',
+        '-b:a 128k',
         '-movflags +faststart',
         '-pix_fmt yuv420p'
       ])
