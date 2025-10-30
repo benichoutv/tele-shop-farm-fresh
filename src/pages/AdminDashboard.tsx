@@ -147,7 +147,7 @@ export default function AdminDashboard() {
     const file = event.target.files?.[0];
     if (!file) return;
     setFormData({ ...formData, videoFile: file });
-    toast({ title: "Vidéo sélectionnée (sera convertie en 480p)" });
+    toast({ title: "Vidéo sélectionnée (sera convertie en 720p)" });
   };
 
   const handleLogout = () => {
@@ -844,7 +844,7 @@ export default function AdminDashboard() {
                           Cliquez pour uploader une photo
                         </p>
                         <p className="text-muted-foreground/60 text-xs mt-1">
-                          Max 50 Mo • JPG, PNG, WebP
+                          Max 500 Mo • JPG, PNG, WebP
                         </p>
                       </>
                     )}
@@ -856,7 +856,7 @@ export default function AdminDashboard() {
               <div className="space-y-2">
                 <Label className="text-foreground">Vidéo (modale uniquement)</Label>
                 <p className="text-xs text-muted-foreground mb-1">
-                  Affichée dans la modale détail. Convertie auto en 480p (max 10-20 Mo)
+                  Affichée dans la modale détail. Convertie auto en 720p (max 500 Mo)
                 </p>
                 <div className="relative">
                   <input
